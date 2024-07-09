@@ -30,6 +30,18 @@ int main() {
     char *alphanum_rb = lexer_getalphanum_rollback(&buffer);
     printf("Get alphanum rollback : %s\n", alphanum_rb);
     buf_print(&buffer);
+
+    printf("%s\n", lexer_getop(&buffer));
+    buf_print(&buffer);
+
+    long *number = lexer_getnumber(&buffer);
+    if (number != NULL) {
+        printf("Number: %ld\n", *number);
+        free(number);
+    } else {
+        printf("No number found\n");
+    }
+    buf_print(&buffer);
     
     // Ferme le fichier pour éviter les erreurs
     fclose(file);
