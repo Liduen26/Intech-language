@@ -7,6 +7,7 @@
 
 int main() {
     buffer_t buffer;
+    ast_list_t nodeList;
 
     FILE *file = fopen("fileToRead2.txt", "r");
 
@@ -21,7 +22,7 @@ int main() {
 
     //lexer_test(&buffer);
 
-    parser(&buffer);
+    parser(&buffer, &nodeList);
     
     // Ferme le fichier pour éviter les erreurs
     fclose(file);

@@ -3,8 +3,9 @@
 #include "ressources/buffer.h"
 #include "ressources/utils.h"
 #include "lexer.h"
+#include "ast.h"
 
-int parser(buffer_t *buffer) {
+ast_list_t* parser(buffer_t *buffer, ast_list_t *nodeList) {
     printf("parser start\n");
     while (!buf_eof_strict(buffer))
     {
@@ -18,8 +19,9 @@ int parser(buffer_t *buffer) {
             return EXIT_FAILURE;
         }
         
-
         free(firstWord);
+        return nodeList;
     }
     printf("parser end\n");
 }
+
