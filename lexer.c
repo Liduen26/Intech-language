@@ -56,7 +56,7 @@ char* lexer_getalphanum_rollback(buffer_t *buffer) {
 }
 
 bool is_operator(const char *op) {
-    const char *operators[] = {"+", "-", ">=", ">", "<", "<=", "==", "!=", "*", "/", "&", "|"};
+    const char *operators[] = {"+", "-", ">=", ">", "<", "<=", "==", "!=", "*", "/", "&", "|", "!", "++"};
     size_t num_operators = sizeof(operators) / sizeof(operators[0]);
 
     for (size_t i = 0; i < num_operators; i++) {
@@ -77,24 +77,40 @@ char *lexer_getop(buffer_t *buffer) {
 
     while (!buf_eof_strict(buffer)) {
         temp_op[0] = buf_getchar(buffer);
-        temp_op[1] = buf_getchar(buffer);
 
         if (is_operator(temp_op)) {
+            temp_op[1] = buf_getchar(buffer);
+
+            if (is_operator(temp_op)) {
+                if (!was_locked) {
+                    buf_unlock(buffer);
+                }
+                return strdup(temp_op);
+            } else {
+                buf_rollback(buffer, 1);
+                temp_op[1] = '\0';
+
+                if (!was_locked) {
+                    buf_unlock(buffer);
+                }
+                return strdup(temp_op);
+            }
+            
+        } else {
+            buf_rollback(buffer, 1);
             if (!was_locked) {
                 buf_unlock(buffer);
             }
-            return strdup(temp_op);
+            return NULL;
         }
 
-        buf_rollback(buffer, 1);
-        temp_op[1] = '\0';
 
-        if (is_operator(temp_op)) {
-            if (!was_locked) {
-                buf_unlock(buffer);
-            }
-            return strdup(temp_op);
-        }
+        // if (is_operator(temp_op)) {
+        //     if (!was_locked) {
+        //         buf_unlock(buffer);
+        //     }
+        //     return strdup(temp_op);
+        // }
     }
 
     if (!was_locked) {
