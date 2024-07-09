@@ -23,7 +23,7 @@ int main() {
     //lexer_test(&buffer);
 
     parser(&buffer, &nodeList);
-    
+
     // Ferme le fichier pour éviter les erreurs
     fclose(file);
     printf("THE END, file closed and memory freed \n");

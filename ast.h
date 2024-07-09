@@ -41,15 +41,8 @@ typedef enum ast_unary_e {
 
 typedef enum {
     INT,
-    BOOL
+    VOID
 } var_type_e;
-
-
-typedef struct ast_list_t {
-    ast_t node;
-    struct ast_list_t * next;
-} ast_list_t;
-
 
 typedef struct ast_t {
     ast_node_type_e type;
@@ -104,7 +97,15 @@ typedef struct ast_t {
     };
 } ast_t;
 
-void parser(buffer_t *buffer, ast_list_t *nodeList); // A deplacer
+typedef struct ast_list_t {
+    ast_t *node;
+    struct ast_list_t * next;
+} ast_list_t;
+
+
+
+
+ast_list_t* parser(buffer_t *buffer, ast_list_t *nodeList); // A deplacer
 
 ast_t *ast_new_integer (long val);
 ast_t *ast_new_variable (char *name, var_type_e type);
