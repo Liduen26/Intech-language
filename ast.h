@@ -41,7 +41,7 @@ typedef enum ast_unary_e {
 
 typedef enum {
     INT,
-    BOOL
+    VOID
 } var_type_e;
 
 
