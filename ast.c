@@ -141,3 +141,29 @@ ast_t* ast_new_return(ast_t *expr) {
     }
     return node;
 }
+
+ast_list_t *ast_list_new_node (ast_t *elem){
+    ast_list_t *node_list = malloc(sizeof(ast_list_t));
+    if (node_list != NULL)
+    {
+        node_list->node = elem;
+        node_list->next = NULL;
+    }
+    return node_list;
+}
+
+ast_list_t *ast_list_add (ast_list_t **prev_node_list, ast_t *elem){
+
+    ast_list_new_node(elem);
+    /**
+    recup le return du noeud d'avant
+
+    l'adresse du noeud qu'on viens de crée (*node_list)
+
+    avoir accès au node_list du noeud d'avant
+
+    remplacer next = NULL par next = *node_list
+     */
+
+
+}

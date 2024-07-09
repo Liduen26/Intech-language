@@ -121,6 +121,6 @@ ast_t *ast_new_loop (ast_t *condition, ast_t *stmt);
 ast_t *ast_new_return (ast_t *expr);
 
 ast_list_t *ast_list_new_node (ast_t *elem);
-ast_list_t *ast_list_add (ast_list_t **list, ast_t *elem);
+ast_list_t *ast_list_add (ast_list_t **prev_node_list, ast_t *elem);
 
 #endif // AST_H
