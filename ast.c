@@ -82,3 +82,62 @@ ast_t *ast_new_function (char *name, var_type_e return_type, ast_list_t *params,
         my_ast->function.stmts = stmts;
     }
 }
+
+ast_t* ast_new_comp_stmt(ast_list_t *stmts) {
+    ast_t *node = malloc(sizeof(ast_t));
+    if (node != NULL) {
+        node->type = AST_COMPOUND_STATEMENT;
+        node->compound_stmt.stmts = stmts;
+    }
+    return node;
+}
+
+ast_t* ast_new_assignment(ast_t *lvalue, ast_t *rvalue) {
+    ast_t *node = malloc(sizeof(ast_t));
+    if (node != NULL) {
+        node->type = AST_ASSIGNMENT;
+        node->assignment.lvalue = lvalue;
+        node->assignment.rvalue = rvalue;
+    }
+    return node;
+}
+
+ast_t* ast_new_declaration(ast_t *lvalue, ast_t *rvalue) {
+    ast_t *node = malloc(sizeof(ast_t));
+    if (node != NULL) {
+        node->type = AST_DECLARATION;
+        node->declaration.lvalue = lvalue;
+        node->declaration.rvalue = rvalue;
+    }
+    return node;
+}
+
+ast_t* ast_new_condition(ast_t *condition, ast_t *valid, ast_t *invalid) {
+    ast_t *node = malloc(sizeof(ast_t));
+    if (node != NULL) {
+        node->type = AST_CONDITION;
+        node->branch.condition = condition;
+        node->branch.valid = valid;
+        node->branch.invalid = invalid;
+    }
+    return node;
+}
+
+ast_t* ast_new_loop(ast_t *condition, ast_t *stmt) {
+    ast_t *node = malloc(sizeof(ast_t));
+    if (node != NULL) {
+        node->type = AST_LOOP;
+        node->loop.condition = condition;
+        node->loop.stmt = stmt;
+    }
+    return node;
+}
+
+ast_t* ast_new_return(ast_t *expr) {
+    ast_t *node = malloc(sizeof(ast_t));
+    if (node != NULL) {
+        node->type = AST_RETURN;
+        node->ret.expr = expr;
+    }
+    return node;
+}
