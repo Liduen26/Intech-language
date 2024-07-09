@@ -105,13 +105,6 @@ char *lexer_getop(buffer_t *buffer) {
             return NULL;
         }
 
-
-        // if (is_operator(temp_op)) {
-        //     if (!was_locked) {
-        //         buf_unlock(buffer);
-        //     }
-        //     return strdup(temp_op);
-        // }
     }
 
     if (!was_locked) {
@@ -171,4 +164,47 @@ long *lexer_getnumber(buffer_t *buffer) {
         buf_unlock(buffer);
         return NULL;
     }
+}
+
+void lexer_test(buffer_t *buffer){
+
+    // Utiliser lexer_getalphanum
+    char *alphanum = lexer_getalphanum(buffer);
+    if (alphanum) {
+        printf("Get alphanum: %s\n", alphanum);
+        free(alphanum);
+    } else {
+        printf("No alphanum found\n");
+    }
+    buf_print(buffer);
+
+    // Utiliser lexer_getalphanum_rollback
+    char *alphanum_rb = lexer_getalphanum_rollback(buffer);
+    if (alphanum_rb) {
+        printf("Get alphanum rollback: %s\n", alphanum_rb);
+        free(alphanum_rb);
+    } else {
+        printf("No alphanum rollback found\n");
+    }
+    buf_print(buffer);
+
+    // Utiliser lexer_getop
+    char *operators = lexer_getop(buffer);
+    if (operators) {
+        printf("Get operator: %s\n", operators);
+        free(operators);
+    } else {
+        printf("No operator found\n");
+    }
+    buf_print(buffer);
+
+    // Utiliser lexer_getnumber
+    long *number = lexer_getnumber(buffer);
+    if (number != NULL) {
+        printf("Number: %ld\n", *number);
+        free(number);
+    } else {
+        printf("No number found\n");
+    }
+    buf_print(buffer);
 }

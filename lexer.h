@@ -11,4 +11,6 @@ char *lexer_getop(buffer_t *buffer);
 
 long *lexer_getnumber(buffer_t *buffer);
 
+void lexer_test(buffer_t *buffer);
+
 #endif // LEXER_H
