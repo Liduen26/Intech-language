@@ -6,6 +6,7 @@
 #include "ressources/buffer.h"
 
 char* lexer_getalphanum(buffer_t *buffer) {
+    buf_skipblank(buffer);
     size_t length = 0;
     bool locked_in = false;
 
