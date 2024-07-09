@@ -103,10 +103,6 @@ typedef struct ast_list_t {
 } ast_list_t;
 
 
-
-
-ast_list_t* parser(buffer_t *buffer, ast_list_t *nodeList); // A deplacer
-
 ast_t *ast_new_integer (long val);
 ast_t *ast_new_variable (char *name, var_type_e type);
 ast_t *ast_new_binary (ast_binary_e op, ast_t *left, ast_t *right);

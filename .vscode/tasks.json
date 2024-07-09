@@ -9,6 +9,7 @@
                 "main.c",
                 "lexer.c",
                 "ast.c",
+                "parser.c",
                 "ressources/buffer.c",
                 "ressources/utils.c",
                 // "-Wall",

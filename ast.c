@@ -5,26 +5,6 @@
 #include "lexer.h"
 #include "ast.h"
 
-ast_list_t* parser(buffer_t *buffer, ast_list_t *nodeList) {
-    printf("parser start\n");
-    while (!buf_eof_strict(buffer))
-    {
-        char *firstWord = lexer_getalphanum(buffer);
-        printf("%s\n", firstWord);
-        if (strcmp(firstWord, "function") == 0) {
-            printf("function !!\n");
-        } else {
-            printf("pas fonction\n");
-            free(firstWord);
-            return EXIT_FAILURE;
-        }
-        
-        free(firstWord);
-        return nodeList;
-    }
-    printf("parser end\n");
-}
-
 ast_t *ast_new_integer (long val) {
     ast_t *node = malloc(sizeof(ast_t));
     if (node != NULL) {
