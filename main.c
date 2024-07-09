@@ -3,6 +3,7 @@
 #include "ressources/buffer.h"
 #include "ressources/utils.h" 
 #include "lexer.h" 
+#include "ast.h"
 
 int main() {
     buffer_t buffer;
@@ -22,6 +23,7 @@ int main() {
     char *alphanum = lexer_getalphanum(&buffer);
     printf("Get alphanum : %s\n", alphanum);
     buf_print(&buffer);
+    free(alphanum);
 
     buf_forward(&buffer, 1);
     printf("Forward 1\n");
@@ -30,9 +32,12 @@ int main() {
     char *alphanum_rb = lexer_getalphanum_rollback(&buffer);
     printf("Get alphanum rollback : %s\n", alphanum_rb);
     buf_print(&buffer);
+    free(alphanum_rb);
 
-    printf("%s\n", lexer_getop(&buffer));
+    char *operators = lexer_getop(&buffer);
+    printf("%s\n", operators);
     buf_print(&buffer);
+    free(operators);
 
     long *number = lexer_getnumber(&buffer);
     if (number != NULL) {
@@ -40,12 +45,13 @@ int main() {
         free(number);
     } else {
         printf("No number found\n");
+        free(number);
     }
     buf_print(&buffer);
+
+    parser(&buffer);
     
     // Ferme le fichier pour éviter les erreurs
     fclose(file);
-    free(alphanum);
-    free(alphanum_rb);
     printf("THE END, file closed and memory freed \n");
 }

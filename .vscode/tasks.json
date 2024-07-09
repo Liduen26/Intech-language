@@ -8,6 +8,7 @@
             "args": [
                 "main.c",
                 "lexer.c",
+                "ast.c",
                 "ressources/buffer.c",
                 "ressources/utils.c",
                 // "-Wall",

@@ -19,6 +19,18 @@ typedef enum {
     AST_RETURN
 } ast_node_type_e;
 
+typedef enum {
+    TRUE,
+    FALSE
+} ast_binary_e;
+
+typedef enum {
+    INT,
+    BOOL
+} var_type_e;
+
+
+
 typedef struct ast_t {
     ast_node_type_e type;
     union {
@@ -71,5 +83,7 @@ typedef struct ast_t {
         } ret;
     };
 } ast_t;
+
+void parser(buffer_t *buffer);
 
 #endif // AST_H
