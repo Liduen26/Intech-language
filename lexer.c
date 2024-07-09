@@ -8,11 +8,11 @@
 char* lexer_getalphanum(buffer_t *buffer) {
     buf_skipblank(buffer);
     size_t length = 0;
-    bool locked_in = false;
+    bool was_locked = buffer->islocked;
 
-    if (!buffer->islocked) {
+    if (!was_locked) {
         buf_lock(buffer);
-        locked_in = true;
+        was_locked = true;
     }
 
     char charRead = buf_getchar(buffer);
@@ -31,15 +31,17 @@ char* lexer_getalphanum(buffer_t *buffer) {
         }
         result[length] = '\0'; // char null de la fin
 
-        if (locked_in)
+        if (was_locked) {
             buf_unlock(buffer);
+        }
         
         return result;
     } else {
         // Remettre le curseur à la position initiale
         buf_rollback(buffer, 1);
-        if (locked_in)
+        if (was_locked) {
             buf_unlock(buffer);
+        }
         
         return NULL;
     }

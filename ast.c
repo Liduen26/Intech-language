@@ -10,7 +10,7 @@ int parser(buffer_t *buffer) {
     {
         char *firstWord = lexer_getalphanum(buffer);
         printf("%s\n", firstWord);
-        if (!strcmp(firstWord, "function")) {
+        if (strcmp(firstWord, "function") == 0) {
             printf("function !!\n");
         } else {
             printf("pas fonction\n");
