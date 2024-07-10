@@ -210,3 +210,45 @@ void lexer_test(buffer_t *buffer){
     free(number);
     buf_print(buffer);
 }
+
+char* lexer_getemoji(buffer_t *buffer) {
+    buf_skipblank(buffer);
+    size_t length = 0;
+    bool was_locked = buffer->islocked;
+
+    if (!was_locked) {
+        buf_lock(buffer);
+        was_locked = true;
+    }
+
+    char charRead = buf_getchar(buffer);
+    while (isalnum(charRead) || buf_eof_strict(buffer)) {
+        charRead = buf_getchar(buffer);
+        length++; 
+    }
+
+    if (length > 0) {
+        char* result = (char*)malloc(length + 1); // +1 pour le caractère null
+
+        buf_rollback(buffer, length + 1);
+
+        for (size_t i = 0; i < length; i++) {
+            result[i] = buf_getchar(buffer);
+        }
+        result[length] = '\0'; // char null de la fin
+
+        if (was_locked) {
+            buf_unlock(buffer);
+        }
+        
+        return result;
+    } else {
+        // Remettre le curseur à la position initiale
+        buf_rollback(buffer, 1);
+        if (was_locked) {
+            buf_unlock(buffer);
+        }
+        
+        return NULL;
+    }
+}

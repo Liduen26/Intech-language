@@ -13,4 +13,6 @@ long *lexer_getnumber(buffer_t *buffer);
 
 void lexer_test(buffer_t *buffer);
 
+char* lexer_getemoji(buffer_t *buffer);
+
 #endif // LEXER_H

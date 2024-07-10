@@ -14,7 +14,7 @@ ast_list_t* parser(buffer_t *buffer) {
     {
         char *first_word = lexer_getalphanum(buffer);
         printf("%s\n", first_word);
-        if (first_word != NULL && (first_word, "function") == 0) {
+        if (first_word != NULL && strcmp(first_word, "function") == 0) {
             printf("function !!\n");
 
             ast_t *function = analyse_function(buffer);
@@ -90,10 +90,11 @@ var_type_e analyse_return(buffer_t *buffer) {
      */
 }
 
-ast_list_t* analyse_corps(buffer_t *buffer, ast_list_t *list_instructions) {
+ast_list_t* analyse_corps(buffer_t *buffer, ast_list_t *list_lines) {
     /**
     Skip blank
     Si { = first
+
 
     Faire des trucs pour comprendre une ligne de code, HF
 
@@ -106,4 +107,51 @@ ast_list_t* analyse_corps(buffer_t *buffer, ast_list_t *list_instructions) {
     Si détecte }, return la liste
     return la liste 
      */
+}
+
+ast_list_t* analyse_line(buffer_t *buffer, ast_list_t *list_instructions){
+    /**
+    Skip blank
+
+    Analyse lexem pour chercher un type
+    check enum pour voir si le type existe
+
+    Si le type existe :
+     - stock l'enum dans une variable 
+     - Analyse lexem pour le nom
+     - stock le nom dans une variable
+     - check si le prochain charactère est un ';'
+
+        new_assignment
+        Si c'est un ';'
+         - return assignment
+        Si c'est pas un ';'
+         - rollback de 1 
+         - get_operator
+         - on stock l'operator
+         - analyse_binary
+
+
+
+    */
+}
+
+ast_t *parse_expression(buffer_t *buffer){
+    /**
+    lexer get_alphanum
+    stock le result 
+
+    Si c'est un ';'
+     - return le result
+    Si c'est pas un ';'
+     
+        Faut regarder si c'est une fonction
+
+     - rollback de 1  
+     - get_operator 
+     - on stock l'operator 
+     - recursivité analyse_binary 
+
+
+    */
 }
