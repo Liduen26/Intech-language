@@ -14,7 +14,7 @@ ast_list_t* parser(buffer_t *buffer) {
     {
         char *first_word = lexer_getalphanum(buffer);
         printf("%s\n", first_word);
-        if (strcmp(first_word, "function") == 0) {
+        if (first_word != NULL && (first_word, "function") == 0) {
             printf("function !!\n");
 
             ast_t *function = analyse_function(buffer);
