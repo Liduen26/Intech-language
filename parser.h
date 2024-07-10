@@ -4,6 +4,11 @@
 #include "ressources/buffer.h"
 #include "ast.h"
 
+typedef enum {
+    INSTRUCTION,
+    ARGUMENT
+} context_e;
+
 ast_list_t* parser(buffer_t *buffer);
  
 ast_t* analyse_function(buffer_t *buffer);

@@ -1,2 +1,18 @@
-Salut cest un test ahah !
+function main2 (type var): void {
+    int i = 1 + azerty;
+    i = 1 + main(4, slt);
+    main();
+}
 
+function main (type var, type var2): void {
+    int i = 1 + 2;
+    if (z < 4) {
+        int j;
+        j = 8;
+        i = j + main2(8);
+    }
+
+    int main;
+    main;
+    main();
+}
