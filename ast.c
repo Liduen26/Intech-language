@@ -134,7 +134,7 @@ ast_list_t *ast_list_new_node (ast_t *elem){
 
 ast_list_t *ast_list_add (ast_list_t **prev_node_list, ast_t *elem){
 
-    ast_list_new_node(elem);
+    //ast_list_new_node(elem);
     /**
     recup le return du noeud d'avant
 
@@ -144,6 +144,19 @@ ast_list_t *ast_list_add (ast_list_t **prev_node_list, ast_t *elem){
 
     remplacer next = NULL par next = *node_list
      */
-
+    
+    ast_list_t *new_node = ast_list_new_node(elem);
+        if (new_node != NULL) {
+            if (*prev_node_list == NULL) {
+                *prev_node_list = new_node;
+            } else {
+                ast_list_t *current = *prev_node_list;
+                while (current->next != NULL) {
+                    current = current->next;
+                }
+                current->next = new_node;
+            }
+        }
+        return new_node;
 
 }
