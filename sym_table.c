@@ -17,8 +17,6 @@ sym_table_t *sym_list_new_node (ast_t *elem){
 
 sym_table_t *sym_list_add (sym_table_t **list_head, ast_t *elem){
     sym_table_t *new_node = sym_list_new_node(elem);
-    printf("%s", list_head);
-    printf("%s", new_node);
 
     if (new_node != NULL) {
         if (*list_head == NULL || "\0") {
