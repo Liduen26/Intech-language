@@ -18,11 +18,11 @@ ast_list_t* parser(buffer_t *buffer) {
     while (!buf_eof_strict(buffer))
     {
         char *first_word = lexer_getalphanum(buffer);
-        printf("%s\n", first_word);
+        printf("first word : %s\n", first_word);
         if (first_word != NULL && strcmp(first_word, "function") == 0) {
             printf("function !!\n");
 
-            ast_t *function = analyse_function(global_sym_table, buffer);    
+            ast_t *function = analyse_function(global_sym_table, buffer);   
 
             if (func_list->node == NULL){
                 // Si c'est null, c'est la première, donc new node
@@ -65,10 +65,8 @@ ast_t* analyse_function(sym_table_t *global_sym_table, buffer_t *buffer) {
 
     ast_t *func_node = ast_new_function(func_name, return_type, list_param, list_instructions);
 
-    check_already_exist(global_sym_table, func_node);
-    // TODO ajout du symbole correspondant au nom de la fonction dans la table des symboles
+    // ajout du symbole correspondant au nom de la fonction dans la table des symboles
     sym_list_add(&global_sym_table, func_node);
-    print_table(global_sym_table);
     // retourner l’AST pour la fonction “main”
     return func_node;
 }

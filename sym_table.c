@@ -15,8 +15,10 @@ sym_table_t *sym_list_new_node (ast_t *elem){
     return node_list;
 }
 
-sym_table_t *sym_list_add (sym_table_t **list_head, ast_t *elem){
-    sym_table_t *new_node = sym_list_new_node(elem);
+sym_table_t *sym_list_add (sym_table_t **list_head, ast_t *node){
+    check_already_exist(*list_head, node);
+
+    sym_table_t *new_node = sym_list_new_node(node);
 
     if (new_node != NULL) {
         if (*list_head == NULL || "\0") {
@@ -46,6 +48,8 @@ void print_table(sym_table_t *node_list) {
     if (node_list->next != NULL) {
         printf(" -> ");
         print_table(node_list->next);
+    } else {
+        printf("\n");
     }
 }
 
