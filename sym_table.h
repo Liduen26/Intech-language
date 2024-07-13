@@ -13,5 +13,7 @@ ast_list_t *sym_list_add (sym_table_t **prev_node_list, ast_t *elem);
 
 void printList(sym_table_t *node_list);
 
+void check_func_already_exist(sym_table_t *list_head, ast_t *node); 
+
 
 #endif // Sym_TABLE_H

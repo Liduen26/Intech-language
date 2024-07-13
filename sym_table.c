@@ -48,3 +48,17 @@ void printList(sym_table_t *node_list) {
         printList(node_list->next);
     }
 }
+
+void check_func_already_exist(sym_table_t *list_head, ast_t *node) {
+    sym_table_t *current = list_head;
+    while (current->next != NULL) {
+        if (current->node->type != AST_FUNCTION) {
+            continue;
+        }
+
+        if (current->node->function.name == node->function.name) {
+            printf("Function %s already exist !", node->function.name);
+            exit(1);
+        }
+    }
+}
