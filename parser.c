@@ -8,12 +8,9 @@
 
 
 ast_list_t* parser(buffer_t *buffer) {
-
-
     printf("parser start\n");
     ast_list_t *func_list;
     sym_table_t *global_sym_table;
-
     
     while (!buf_eof_strict(buffer))
     {
@@ -56,12 +53,16 @@ ast_t* analyse_function(sym_table_t *global_sym_table, buffer_t *buffer) {
     création de l’AST pour la fonction “main” avec les paramètres, type de retour et corps de
     fonction
      */
+
     char *func_name = lexer_getalphanum(buffer);
+
+    sym_table_t *local_table;
+
     ast_list_t *list_param; 
-    list_param = analyse_param(buffer, list_param);
+    list_param = analyse_param(buffer, list_param, local_table);
     var_type_e return_type = analyse_return(buffer);
     ast_list_t *list_instructions;
-    list_instructions = analyse_corps(buffer, list_instructions);
+    list_instructions = analyse_corps(buffer, list_instructions, global_sym_table, local_table);
 
     ast_t *func_node = ast_new_function(func_name, return_type, list_param, list_instructions);
 
@@ -71,7 +72,7 @@ ast_t* analyse_function(sym_table_t *global_sym_table, buffer_t *buffer) {
     return func_node;
 }
 
-ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param) {
+ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param, sym_table_t *local_table) {
     /**
     Skip blank
     Si '(' alors first=true
@@ -84,6 +85,7 @@ ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param) {
     check_valid_name
     get_alphanum nom 
     crée ast_t de la déclaration de var
+    sym_list_add dans la table locale du nouveau node
 
     Si first
         new liste avec la var trouvée
@@ -112,7 +114,7 @@ var_type_e analyse_return(buffer_t *buffer) {
      */
 }
 
-ast_list_t* analyse_corps(buffer_t *buffer, ast_list_t *list_lines) {
+ast_list_t* analyse_corps(buffer_t *buffer, ast_list_t *list_lines, sym_table_t *global_sym_table, sym_table_t *local_table) {
     /**
     Skip blank
     getchar
@@ -129,7 +131,7 @@ ast_list_t* analyse_corps(buffer_t *buffer, ast_list_t *list_lines) {
      */
 }
 
-ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions){
+ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions, sym_table_t *global_sym_table, sym_table_t *local_table){
     /**
     Skip blank
 
@@ -145,6 +147,9 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions)
             check_valid_name
             get_alphanum
             creation ast new_declation
+
+            sym_list_add dans la table locale du nouveau node
+            
     Sinon 
         check_valid_name
          isFunc = is_function
@@ -154,14 +159,15 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions)
             lexer get_alphanum
             analyse_param
             // TODO Regarde la table des symboles pour vérifier qu'on a le bon nombre de params avec le bon type au bon endroit
-            // TODO Parcourir les deux listes, args dans les symboles, et params pour vérifier que tout correspond
+
+            check_already_exist dans la table globale
             stocker ces infos et ast_new_fncall
 
         sinon 
             // C'est une variable
             var name = get alphanum 
-            // TODO Verfier que la var exist dans la table des symboles de la func
-            // TODO Récupère le type de la var dans la table des symboles
+            check_already_exist dans la table locale et récup le type de la var
+
             crée ast de la variable
 
     Skipblank
@@ -174,9 +180,9 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions)
         créer ast new assignment
         end_char = getchar_after_blank
         rollback 1
-
     Sinon 
         crash :(
+
     Si endchar = '}' :
         return asignment
     Sinon
@@ -185,7 +191,7 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions)
     */
 }
 
-ast_t *parse_expression(buffer_t *buffer, context_e context){
+ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global_sym_table, sym_table_t *local_table){
     /**
     Skipblank
     lexer get_num_rollback
@@ -200,6 +206,8 @@ ast_t *parse_expression(buffer_t *buffer, context_e context){
             analyse_param
             // TODO Regarde la table des symboles pour vérifier qu'on a le bon nombre de params avec le bon type au bon endroit
             // TODO Parcourir les deux listes, args dans les symboles, et params pour vérifier que tout correspond
+
+            check_already_exist dans la table GLOBALE
             stocker ces infos et ast_new_fncall
 
         sinon 
@@ -208,6 +216,7 @@ ast_t *parse_expression(buffer_t *buffer, context_e context){
             // TODO Verfier que la var exist dans la table des symboles de la func
             // TODO Récupère le type de la var dans la table des symboles
             crée ast de la variable
+            check_already_exist dans la table LOCALE
     sinon
         crée ast integer
 
@@ -237,7 +246,7 @@ ast_t *parse_expression(buffer_t *buffer, context_e context){
     */
 }
 
-ast_list_t* analyse_args(buffer_t *buffer, ast_list_t list_args) {
+ast_list_t* analyse_args(buffer_t *buffer, ast_list_t list_args, sym_table_t *global_sym_table, sym_table_t *local_table) {
     /**
     Skip blank
     get char

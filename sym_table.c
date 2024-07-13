@@ -16,7 +16,7 @@ sym_table_t *sym_list_new_node (ast_t *elem){
 }
 
 sym_table_t *sym_list_add (sym_table_t **list_head, ast_t *node){
-    check_already_exist(*list_head, node);
+    crash_if_exist(*list_head, node);
 
     sym_table_t *new_node = sym_list_new_node(node);
 
@@ -53,7 +53,37 @@ void print_table(sym_table_t *node_list) {
     }
 }
 
-void check_already_exist(sym_table_t *list_head, ast_t *node) {
+var_type_e *check_already_exist(sym_table_t *list_head, ast_t *node) {
+    sym_table_t *current = list_head;
+    if (node == NULL) {
+        exit(1);
+    }
+
+    while (current->next == NULL) {
+        switch (current->node->type)
+        {
+        case AST_FUNCTION:
+            if (current->node->function.name == node->function.name) {
+                return &current->node->function.return_type;
+            }
+            break;
+
+        case AST_VARIABLE:
+            if (current->node->var.name == node->var.name) {
+                return &current->node->var.type;
+            }
+            break;
+
+        default:
+            continue;
+            break;
+        }
+    }
+
+    return NULL;
+}
+
+void crash_if_exist(sym_table_t *list_head, ast_t *node) {
     sym_table_t *current = list_head;
     if (node == NULL) {
         exit(1);
