@@ -133,17 +133,6 @@ ast_list_t *ast_list_new_node (ast_t *elem){
 }
 
 ast_list_t *ast_list_add (ast_list_t **prev_node_list, ast_t *elem){
-
-    /**
-    recup le return du noeud d'avant
-
-    l'adresse du noeud qu'on viens de crée (*node_list)
-
-    avoir accès au node_list du noeud d'avant
-
-    remplacer next = NULL par next = *node_list
-     */
-
     ast_list_t *new_node = ast_list_new_node(elem);
 
     if (new_node != NULL) {

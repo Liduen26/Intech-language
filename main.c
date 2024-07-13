@@ -25,17 +25,13 @@ int main() {
     //TEST DU LEXER
     //lexer_test(&buffer);
 
-    //TEST DU PARSER
-    //ast_list_t* func_list = parser(&buffer);
-
     //TEST DE LA CREATION LISTE CHAINÉ
+    // ast_list_t *prev_node_list = ast_list_new_node(ast_new_integer(2));
+    // ast_list_add(&prev_node_list, ast_new_variable("ma var", INT));
+    // printList(prev_node_list);
 
-
-    ast_list_t *prev_node_list = ast_list_new_node(ast_new_integer(2));
-
-    ast_list_add(&prev_node_list, ast_new_variable("ma var", INT));
-
-    printList(prev_node_list);
+    //TEST DU PARSER
+    ast_list_t* func_list = parser(&buffer);
 
     // Ferme le fichier pour éviter les erreurs
     fclose(file);
