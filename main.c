@@ -29,7 +29,9 @@ int main() {
     //ast_list_t* func_list = parser(&buffer);
 
     //TEST DE LA CREATION LISTE CHAINÉ
-    ast_list_t *prev_node_list = ast_list_new_node(ast_new_integer(2));
+
+
+    ast_list_t **prev_node_list = ast_list_new_node(ast_new_integer(2));
 
     ast_list_add(prev_node_list, ast_new_variable("ma var", INT));
 
