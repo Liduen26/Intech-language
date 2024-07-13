@@ -168,13 +168,11 @@ void printList(ast_list_t *node_list) {
         exit(1);
     }
     
-    while (node_list->next != NULL) {
+    printf("| %d ", node_list->node->type);
+    printf("| %d |", node_list->next);
 
-        printf("%d node -> ", node_list->node);
-        printf("%d next -> ", node_list->next);
-
-        node_list = node_list->next;
+    if (node_list->next != NULL) {
+        printf(" -> ");
+        printList(node_list->next);
     }
-
-    printf("ça march pa\n");
 }
