@@ -112,7 +112,7 @@ ast_t *ast_new_function (char *name, var_type_e return_type, ast_list_t *params,
 ast_t *ast_new_comp_stmt (ast_list_t *stmts);
 ast_t *ast_new_assignment (ast_t *lvalue, ast_t *rvalue);
 ast_t *ast_new_declaration (ast_t *lvalue, ast_t *rvalue);
-ast_t *ast_new_condition (ast_t *condition, ast_t *valid, ast_t *invalid);
+ast_t *ast_new_condition (ast_t *operation, ast_t *valid, ast_t *invalid);
 ast_t *ast_new_loop (ast_t *condition, ast_t *stmt);
 ast_t *ast_new_return (ast_t *expr);
 

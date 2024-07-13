@@ -59,7 +59,7 @@ char* lexer_getalphanum_rollback(buffer_t *buffer) {
 }
 
 bool is_operator(const char *op) {
-    const char *operators[] = {"+", "-", ">=", ">", "<", "<=", "==", "!=", "*", "/", "&", "||", "!", "++"};
+    const char *operators[] = {"+", "-", ">=", ">", "<", "<=", "==", "!=", "*", "/"};
     size_t num_operators = sizeof(operators) / sizeof(operators[0]);
 
     for (size_t i = 0; i < num_operators; i++) {

@@ -1,6 +1,10 @@
 function main2 (type var): void {
-    int i = 1 + azerty;
-    i = 1 + main(4, slt);
+    //int i = 1 + azerty;
+    //i = 1 + main(4, slt);
+
+    if (1 < 2){
+        i++;
+    }
     main();
 }
 

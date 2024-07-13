@@ -44,6 +44,7 @@ ast_list_t* parser(buffer_t *buffer) {
     return func_list;
 }
 
+//analyse la fonction dans son ensemble (chef d'orchestre)
 ast_t* analyse_function(sym_table_t *global_sym_table, buffer_t *buffer) {
     /**
     analyse du lexème qui sera le nom de la fonction
@@ -72,6 +73,7 @@ ast_t* analyse_function(sym_table_t *global_sym_table, buffer_t *buffer) {
     return func_node;
 }
 
+//analyse les paramètres d'un fonction, si "=", recursive
 ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param, sym_table_t *local_table) {
     /**
     Skip blank
@@ -99,6 +101,7 @@ ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param, sym_table_t 
      */
 }
 
+//analyse le return d'une déclaration de fonction
 var_type_e analyse_return(buffer_t *buffer) {
     /**
     Skip blank
@@ -114,6 +117,7 @@ var_type_e analyse_return(buffer_t *buffer) {
      */
 }
 
+//analyse les instruction du début jusqu'a la fin d'une fonction
 ast_list_t* analyse_corps(buffer_t *buffer, ast_list_t *list_lines, sym_table_t *global_sym_table, sym_table_t *local_table) {
     /**
     Skip blank
@@ -131,72 +135,91 @@ ast_list_t* analyse_corps(buffer_t *buffer, ast_list_t *list_lines, sym_table_t 
      */
 }
 
+//analyse une instruction jusqu'a son ";"
 ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions, sym_table_t *global_sym_table, sym_table_t *local_table){
     /**
     Skip blank
+    word = lexem_getalphanum 
+    // TODO Mettre des vérifs pour les mots clé logiques (if, while, return) faut pas qu'il aille vérifier fonction/var
+    switch (word)
+    {
+    case if:
+        analyse_condition
+        analyse_corp
+        break;
 
-    lexem_getalphanum 
-    Si c'est un type
-        check enum pour voir si le type existe
+    case while:
+        pseudocode
+        break:
+    
+    case return:
+        pseudocode
+        break:
 
-        Si existe pas :
+    default:
+        Si c'est un type
+            check enum pour voir si le type existe
+
+            Si existe pas :
+                crash :(
+
+            Si le type existe :
+                stock l'enum dans une variable 
+                check_valid_name
+                get_alphanum
+                creation ast new_declation
+
+                sym_list_add dans la table locale du nouveau node
+                
+        Sinon 
+            check_valid_name
+            isFunc = is_function
+
+            Si isFunc == true
+                // C'est une fonction
+                lexer get_alphanum
+                analyse_param
+                // TODO Regarde la table des symboles pour vérifier qu'on a le bon nombre de params avec le bon type au bon endroit
+
+                check_already_exist dans la table globale
+                stocker ces infos et ast_new_fncall
+
+            sinon 
+                // C'est une variable
+                var name = get alphanum 
+                check_already_exist dans la table locale et récup le type de la var
+
+                crée ast de la variable
+
+        Skipblank
+        Lire next char
+        Si c'est un ';'
+            return l'ast créé, ou var ou declaration
+        sinon Si c'est un '='
+            left = ast du if avant
+            right = parse_expression
+            créer ast new assignment
+            end_char = getchar_after_blank
+            rollback 1
+        Sinon 
             crash :(
 
-        Si le type existe :
-            stock l'enum dans une variable 
-            check_valid_name
-            get_alphanum
-            creation ast new_declation
+        Si endchar = '}' :
+            return asignment
+        Sinon
+            analyse_instruction (recursivité)
+            break;
+        }
 
-            sym_list_add dans la table locale du nouveau node
-            
-    Sinon 
-        check_valid_name
-         isFunc = is_function
-
-        Si isFunc == true
-            // C'est une fonction
-            lexer get_alphanum
-            analyse_param
-            // TODO Regarde la table des symboles pour vérifier qu'on a le bon nombre de params avec le bon type au bon endroit
-
-            check_already_exist dans la table globale
-            stocker ces infos et ast_new_fncall
-
-        sinon 
-            // C'est une variable
-            var name = get alphanum 
-            check_already_exist dans la table locale et récup le type de la var
-
-            crée ast de la variable
-
-    Skipblank
-    Lire next char
-    Si c'est un ';'
-        return l'ast créé, ou var ou declaration
-    sinon Si c'est un '='
-        left = ast du if avant
-        right = parse_expression
-        créer ast new assignment
-        end_char = getchar_after_blank
-        rollback 1
-    Sinon 
-        crash :(
-
-    Si endchar = '}' :
-        return asignment
-    Sinon
-        analyse_instruction (recursivité)     
-
+    return
     */
 }
-
+//check si func ou var et agit, check binary operator et recursive 
 ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global_sym_table, sym_table_t *local_table){
     /**
     Skipblank
     lexer get_num_rollback
     Si == NULL
-        // TODO Mettre des vérifs pour les mots clé logiques (if, while, return) faut pas qu'il aille vérifier fonction/var
 
         isFunc = is_function
 
@@ -230,6 +253,11 @@ ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global
         getchar_after_blank
         Si c'est un ';'
             return 
+    sinon SI c'est un "operateur conditionel" || ')' ET context CONDITION
+        rollback
+        return resultat
+
+
 
 
     Si c'est pas un ';'
@@ -246,6 +274,7 @@ ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global
     */
 }
 
+//vérifie qu'on donne des args quand on déclare une fonction sinon crash
 ast_list_t* analyse_args(buffer_t *buffer, ast_list_t list_args, sym_table_t *global_sym_table, sym_table_t *local_table) {
     /**
     Skip blank
@@ -278,6 +307,7 @@ ast_list_t* analyse_args(buffer_t *buffer, ast_list_t list_args, sym_table_t *gl
      */
 }
 
+//renvoie true si le nom de fonction/var est bon sinon crash
 void check_valid_name(buffer_t *buffer){
     /**
     Skipblank
@@ -301,6 +331,7 @@ void check_valid_name(buffer_t *buffer){
     */
 }
 
+//renvoie true si c'est une fonction et false si non
 bool is_function(buffer_t *buffer) {
     /**
     Si check_valid_name == true
@@ -315,4 +346,35 @@ bool is_function(buffer_t *buffer) {
     
     return false
      */
+}
+bool is_conditional_operator(const char *op) {
+    const char *operators[] = {">=", ">", "<", "<=", "==", "!="};
+    size_t num_operators = sizeof(operators) / sizeof(operators[0]);
+
+    for (size_t i = 0; i < num_operators; i++) {
+        if (strcmp(op, operators[i]) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+ast_t analyse_condition(buffer_t *buffer, sym_table_t *global_sym_table, sym_table_t *local_table) {
+    /*
+    Skipblank
+    getchar "("
+
+    Si != "("
+        crash :(
+
+    Sinon parse_expression dans le context CONDITION
+        getoperator
+            SI == NULL
+                crash :(
+            Sinon
+                parse_expression
+        build ast_t conditional
+    
+    return ast_analyse_condition
+    */
 }
