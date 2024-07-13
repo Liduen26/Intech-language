@@ -5,15 +5,15 @@
 
 typedef struct sym_table_t {
     ast_t *node;
-    struct sym_table *next;
+    struct sym_table_t *next;
 } sym_table_t;
 
-ast_list_t *sym_list_new_node (ast_t *elem);
-ast_list_t *sym_list_add (sym_table_t **prev_node_list, ast_t *elem);
+sym_table_t *sym_list_new_node (ast_t *elem);
+sym_table_t *sym_list_add (sym_table_t **prev_node_list, ast_t *elem);
 
-void printList(sym_table_t *node_list);
+void print_table(sym_table_t *node_list);
 
-void check_func_already_exist(sym_table_t *list_head, ast_t *node); 
+void check_already_exist(sym_table_t *list_head, ast_t *node); 
 
 
 #endif // Sym_TABLE_H

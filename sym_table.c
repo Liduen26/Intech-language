@@ -33,7 +33,7 @@ sym_table_t *sym_list_add (sym_table_t **prev_node_list, ast_t *elem){
 
 }
 
-void printList(sym_table_t *node_list) {
+void print_table(sym_table_t *node_list) {
 
     if (node_list == NULL)
     {
@@ -45,14 +45,18 @@ void printList(sym_table_t *node_list) {
 
     if (node_list->next != NULL) {
         printf(" -> ");
-        printList(node_list->next);
+        print_table(node_list->next);
     }
 }
 
-void check_func_already_exist(sym_table_t *list_head, ast_t *node) {
+void check_already_exist(sym_table_t *list_head, ast_t *node) {
     sym_table_t *current = list_head;
-    while (current->next != NULL) {
-        if (current->node->type != AST_FUNCTION) {
+    if (node == NULL) {
+        exit(1);
+    }
+
+    while (current->next == NULL) {
+        if (current->node->type != node->type) {
             continue;
         }
 

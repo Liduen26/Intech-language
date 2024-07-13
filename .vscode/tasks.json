@@ -10,6 +10,7 @@
                 "lexer.c",
                 "ast.c",
                 "parser.c",
+                "sym_table.c",
                 "ressources/buffer.c",
                 "ressources/utils.c",
                 // "-Wall",
