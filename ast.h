@@ -119,4 +119,6 @@ ast_t *ast_new_return (ast_t *expr);
 ast_list_t *ast_list_new_node (ast_t *elem);
 ast_list_t *ast_list_add (ast_list_t **prev_node_list, ast_t *elem);
 
+void printList(ast_list_t *node_list);
+
 #endif // AST_H
