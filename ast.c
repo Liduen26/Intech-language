@@ -132,14 +132,14 @@ ast_list_t *ast_list_new_node (ast_t *elem){
     return node_list;
 }
 
-ast_list_t *ast_list_add (ast_list_t **prev_node_list, ast_t *elem){
+ast_list_t *ast_list_add (ast_list_t **list_head, ast_t *elem){
     ast_list_t *new_node = ast_list_new_node(elem);
 
     if (new_node != NULL) {
-        if (*prev_node_list == NULL) {
-            *prev_node_list = new_node;
+        if (*list_head == NULL) {
+            *list_head = new_node;
         } else {
-            ast_list_t *current = *prev_node_list;
+            ast_list_t *current = *list_head;
             while (current->next != NULL) {
                 current = current->next;
             }

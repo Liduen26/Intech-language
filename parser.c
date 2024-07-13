@@ -67,7 +67,8 @@ ast_t* analyse_function(sym_table_t *global_sym_table, buffer_t *buffer) {
 
     check_already_exist(global_sym_table, func_node);
     // TODO ajout du symbole correspondant au nom de la fonction dans la table des symboles
-    // sym_list_add(&global_sym_table, func_node);
+    sym_list_add(&global_sym_table, func_node);
+    print_table(global_sym_table);
     // retourner l’AST pour la fonction “main”
     return func_node;
 }
