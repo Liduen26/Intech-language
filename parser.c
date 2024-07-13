@@ -4,9 +4,12 @@
 #include "lexer.h"
 #include "ast.h"
 #include "parser.h"
+#include "sym_table.h"
 
 
 ast_list_t* parser(buffer_t *buffer) {
+
+
     printf("parser start\n");
     ast_list_t *func_list;
 
@@ -18,7 +21,9 @@ ast_list_t* parser(buffer_t *buffer) {
             printf("function !!\n");
 
             ast_t *function = analyse_function(buffer);
-
+            
+            sym_table_t *global_sym_table = sym_list_new_node(function);
+            
             if (func_list->node == NULL){
                 // Si c'est null, c'est la première, donc new node
                 ast_list_new_node(function);
