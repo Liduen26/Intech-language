@@ -13,7 +13,9 @@ function main (type var, type var2): void {
     if (z < 4) {
         int j;
         j = 8;
+    } else if {
         i = j + main2(8);
+
     }
 
     int main;

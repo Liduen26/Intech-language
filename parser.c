@@ -118,7 +118,7 @@ var_type_e analyse_return(buffer_t *buffer) {
 }
 
 //analyse les instruction du début jusqu'a la fin d'une fonction
-ast_list_t* analyse_corps(buffer_t *buffer, ast_list_t *list_lines, sym_table_t *global_sym_table, sym_table_t *local_table) {
+ast_t* analyse_corps(buffer_t *buffer, ast_list_t *list_lines, sym_table_t *global_sym_table, sym_table_t *local_table) {
     /**
     Skip blank
     getchar
@@ -130,8 +130,8 @@ ast_list_t* analyse_corps(buffer_t *buffer, ast_list_t *list_lines, sym_table_t 
     analyse_instruction
 
     Si détecte autre chose que } = crash :(
-    Si détecte }, return la liste
-    return la liste 
+    Crée un ast new_comp_stmt
+    return l'ast
      */
 }
 
@@ -144,16 +144,34 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
     switch (word)
     {
     case if:
-        analyse_condition
-        analyse_corp
+        analyse_condition < condition
+        analyse_corps < valid
+        get_alphanum_rollback
+        si "else"
+            get_alphanum
+            get_alphanum_rollback
+            Si "if"
+                recursif et return un conditional < invalid
+            sinon
+                get_char_after_blank
+                si "{"
+                    analyse corps et stocke le cmpd stmt < invalid
+                sinon
+                    crash :(
+
+        ast_t new_condition avec le binary de condition, le comp stmt de corps, et le résultat du else (conditional ou cmpd stmt)
+
         break;
 
     case while:
-        pseudocode
+        analyse_condition < condition
+        analyse_corps < stmt
+        ast new_loop
         break:
     
     case return:
-        pseudocode
+        parse_expression
+        ast new_return
         break:
 
     default:
@@ -214,6 +232,29 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
     return
     */
 }
+
+// Analyse une condition (2 < 3)
+ast_t analyse_condition(buffer_t *buffer, sym_table_t *global_sym_table, sym_table_t *local_table) {
+    /*
+    Skipblank
+    getchar "("
+
+    Si != "("
+        crash :(
+
+    Sinon 
+        parse_expression dans le context CONDITION
+        getoperator
+            SI == NULL
+                crash :(
+            Sinon
+                parse_expression
+        build ast_t binary
+    
+    return l'ast
+    */
+}
+
 //check si func ou var et agit, check binary operator et recursive 
 ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global_sym_table, sym_table_t *local_table){
     /**
@@ -357,24 +398,4 @@ bool is_conditional_operator(const char *op) {
         }
     }
     return false;
-}
-
-ast_t analyse_condition(buffer_t *buffer, sym_table_t *global_sym_table, sym_table_t *local_table) {
-    /*
-    Skipblank
-    getchar "("
-
-    Si != "("
-        crash :(
-
-    Sinon parse_expression dans le context CONDITION
-        getoperator
-            SI == NULL
-                crash :(
-            Sinon
-                parse_expression
-        build ast_t conditional
-    
-    return ast_analyse_condition
-    */
 }
