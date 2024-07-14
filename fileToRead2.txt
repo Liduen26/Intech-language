@@ -1,4 +1,4 @@
-function main2 (int var): void {
+function main2 (int var, int var2): void {
     int i = 1 + azerty;
     i = 1 + main(4, slt);
 

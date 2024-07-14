@@ -57,7 +57,6 @@ ast_t* analyse_function(sym_table_t *global_sym_table, buffer_t *buffer) {
     fonction
      */
     char *func_name = lexer_getalphanum(buffer);
-    buf_print(buffer);
     printf("Lecture nom de la fonction %s\n", func_name);
 
     sym_table_t *local_table;
@@ -97,7 +96,12 @@ ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param, sym_table_t 
 
     // Cherche une ( en premier char
     char first_char = buf_getchar_after_blank(buffer);
-
+    if (first_char != '(') {
+        buf_lock(buffer);
+        buf_rollback(buffer, 1);
+        buf_unlock(buffer);
+    }
+    
     // cherche un type
     char *type = lexer_getalphanum(buffer);
     if (type == NULL) {
@@ -123,7 +127,8 @@ ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param, sym_table_t 
     sym_list_add(&local_table, ast_var);
     
     ast_list_t *list_parameter = ast_list_add(&list_param, ast_var);
-    printf("Lecture des parametres de la fonctions : %s\n", list_parameter);
+    printf("Lecture du parametre : %s\n", list_parameter->node->var.name);
+
     // Regarde le prochain char pour savoir si c'est une "," ou pas
     char next_char = buf_getchar_after_blank(buffer);
     if (next_char == ',') {

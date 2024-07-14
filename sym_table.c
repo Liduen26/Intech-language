@@ -21,6 +21,7 @@ sym_table_t *sym_list_add (sym_table_t **list_head, ast_t *node){
     sym_table_t *new_node = sym_list_new_node(node);
 
     if (new_node != NULL) {
+        printf("name : %s", node->var.name);
         if (*list_head == NULL || "\0") {
             *list_head = new_node;
         } else {
@@ -88,14 +89,16 @@ void crash_if_exist(sym_table_t *list_head, ast_t *node) {
     if (node == NULL) {
         exit(1);
     }
+    print_table(list_head);
 
     while (current->next == NULL) {
+        printf("%s\n", current->node->function.name);
         if (current->node->type != node->type) {
             continue;
         }
 
         if (current->node->function.name == node->function.name) {
-            printf("Function %s already exist !", node->function.name);
+            printf("%s already exist !", node->function.name);
             exit(1);
         }
     }
