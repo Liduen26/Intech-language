@@ -7,6 +7,7 @@
 #include "utils.h"
 
 int line = 1;
+int col = 1;
 
 void buf_init (buffer_t *buffer, FILE* fd)
 {
@@ -36,7 +37,7 @@ bool buf_eof (buffer_t *buffer) {
 
 void buf_lock (buffer_t *buffer) {
   if (buffer->islocked) {
-    fprintf(stderr, "Warning: lock was already set.\n");
+    fprintf(stderr, "Warning %d : %d : lock was already set.\n", buf_getline(), buf_getcol());
     print_backtrace();
   }
   buffer->bytesreadsincelock = 0;
@@ -46,7 +47,7 @@ void buf_lock (buffer_t *buffer) {
 
 void buf_unlock (buffer_t *buffer) {
   if (!buffer->islocked) {
-    fprintf(stderr, "Warning: lock was not set.\n");
+    fprintf(stderr, "Warning %d : %d : lock was not set.\n", buf_getline(), buf_getcol());
     print_backtrace();
   }
   buffer->bytesreadsincelock = 0;
@@ -124,7 +125,7 @@ char buf_getchar (buffer_t *buffer)
     }
     buffer->avail = end;
   }
-
+  col++;
   char ret = buffer->content[buffer->it];
   buf_move_it(buffer, 1);
   buffer->avail -= 1;
@@ -146,7 +147,7 @@ void buf_getnchar (buffer_t *buffer, char *out, size_t n)
   char *outcurs = out;
   size_t cnt, max;
   char *content = buffer->content;
- 
+  
   while (n) {
     // number of chars that can be read w/o going back to 0
     size_t currpos = !buffer->islocked ? buffer->it : buffer->lock;
@@ -192,11 +193,12 @@ void buf_forward (buffer_t *buffer, size_t n)
 void buf_rollback (buffer_t *buffer, size_t n)
 {
   if (!buffer->islocked) {
-    fprintf(stderr, "Warning: rollback without lock.\n");
+    fprintf(stderr, "Warning %d : %d : rollback without lock.\n", buf_getline(), buf_getcol());
     print_backtrace();
   }
   buf_move_it_bw(buffer, n);
   buffer->avail += n;
+  col--;
 }
 
 void buf_rollback_and_unlock (buffer_t *buffer, size_t n)
@@ -218,6 +220,7 @@ size_t buf_skipblank (buffer_t *buffer)
   while (ISBLANK(next)) {
     if (next == '\n') {
       line++;
+      col = 1;
     }
     next = buf_getchar(buffer);
     count++;
@@ -235,7 +238,9 @@ size_t buf_skipblank (buffer_t *buffer)
 int buf_getline() {
   return line;
 }
-
+int buf_getcol() {
+  return col;
+}
 
 char buf_getchar_rollback (buffer_t *buffer)
 {

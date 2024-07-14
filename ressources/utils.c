@@ -4,7 +4,6 @@
 #include <unistd.h>
 #include <execinfo.h>
 #endif
-
 char *copy_name (char *name)
 {
   size_t len = strlen(name) + 1;
