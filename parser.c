@@ -153,6 +153,28 @@ var_type_e analyse_return(buffer_t *buffer) {
     
     return type de l'enum
      */
+    char ch = buf_getchar_after_blank(buffer);
+    if (ch != ':') {
+        printf("ERROR line %d : Expected ':' for return type of declaration\n", buf_getline());
+        exit(1);
+    }
+
+    buf_skipblank(buffer);
+    char *return_type_str = lexer_getalphanum(buffer);
+    if (return_type_str == NULL){
+        printf("ERROR line %d : Expected return type after ':'\n", buf_getline());
+        free(return_type_str);
+        exit(1);
+    }
+
+    var_type_e return_type = type_str_to_enum(return_type_str);
+    if (return_type == INVALID_TYPE) {
+        printf("ERROR line %d : Invalid return type '%s'\n", buf_getline(), return_type_str);
+        exit(1);
+    }
+
+    free(return_type_str);
+    return return_type;
 }
 
 //analyse les instruction du début jusqu'a la fin d'une fonction
