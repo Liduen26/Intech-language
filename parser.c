@@ -1,23 +1,25 @@
 #include <stdlib.h>
 #include <string.h>
 #include "ressources/buffer.h"
+#include "ressources/utils.h"
 #include "lexer.h"
 #include "ast.h"
 #include "parser.h"
 #include "sym_table.h"
 
+const bool TRACE = true;
 
 ast_list_t* parser(buffer_t *buffer) {
-    printf("parser start\n");
     ast_list_t *func_list;
     sym_table_t *global_sym_table;
+
+    print_trace("Parser start");
     
     while (!buf_eof_strict(buffer))
     {
         char *first_word = lexer_getalphanum(buffer);
         printf("first word : %s\n", first_word);
         if (first_word != NULL && strcmp(first_word, "function") == 0) {
-            printf("function !!\n");
 
             ast_t *function = analyse_function(global_sym_table, buffer);   
 
@@ -32,7 +34,7 @@ ast_list_t* parser(buffer_t *buffer) {
             
             
         } else {
-            printf("pas fonction, exit 1\n");
+            print_trace("Ce n'est pas une fonction");
             free(first_word);
             exit(1);
         }
@@ -202,7 +204,7 @@ ast_list_t* analyse_corps(buffer_t *buffer, ast_list_t *list_lines, sym_table_t 
     list_lines = analyse_instruction(buffer, NULL, global_sym_table, local_table);
     
     if (ch != '}') {
-        printf("ERROR %d : %d : Expected '}' at the end of function body\n", buf_getline);
+        printf("ERROR %d : %d : Expected '}' at the end of function body\n", buf_getline(), buf_getcol());
         exit(1);
     }
 
@@ -803,4 +805,10 @@ ast_binary_e op_str_to_enum(char* op){
     if (strcmp(op, "!=") == 0) return NOT_EQUAL;
     if (strcmp(op, "*") == 0) return TIMES;
     if (strcmp(op, "/") == 0) return DIVIDE;
+}
+
+void print_trace(char * str) {
+  if (TRACE) {
+    printf("TRACE %d:%d : %s\n", buf_getline(), buf_getcol(), str);
+  }
 }

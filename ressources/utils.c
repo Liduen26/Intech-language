@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <execinfo.h>
 #endif
+
 char *copy_name (char *name)
 {
   size_t len = strlen(name) + 1;
@@ -25,3 +26,9 @@ void print_backtrace ()
   backtrace_symbols_fd(array, size, STDERR_FILENO);
 #endif /* WIN32 */
 }
+
+// void print_trace(char * str) {
+//   if (TRACE) {
+//     printf("TRACE %d:%d : %s\n", buf_getline, buf_getcol, str);
+//   }
+// }

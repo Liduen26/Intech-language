@@ -235,13 +235,6 @@ size_t buf_skipblank (buffer_t *buffer)
   return count;
 }
 
-int buf_getline() {
-  return line;
-}
-int buf_getcol() {
-  return col;
-}
-
 char buf_getchar_rollback (buffer_t *buffer)
 {
   bool waslocked = true;
@@ -291,4 +284,18 @@ void buf_print (buffer_t *buffer)
       printf("%s%c" COLOR_DEFAULT, color, buffer->content[i]);
   }
   printf(COLOR_BLUE "#### </buffer> ####\n" COLOR_DEFAULT);
+}
+
+
+int buf_getline() {
+  // if (!initialized) {
+  //   line = 1;
+  // }
+  return line;
+}
+int buf_getcol() {
+  // if (!initialized) {
+  //   col = 1;
+  // }
+  return col;
 }

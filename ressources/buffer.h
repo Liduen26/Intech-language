@@ -7,6 +7,9 @@
 #define BUF_SIZE 1024
 #define ISBLANK(chr) ((chr) == ' ' || (chr) == '\n' || (chr) == '\t')
 
+extern int line;
+extern int col;
+
 typedef struct buffer_t {
   char content[BUF_SIZE];
   FILE *fd;

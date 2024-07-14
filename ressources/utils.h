@@ -17,4 +17,6 @@
 char *copy_name (char *name);
 void print_backtrace ();
 
+void print_trace(char * str);
+
 #endif /* ifndef UTILS_H */
