@@ -199,16 +199,7 @@ ast_list_t* analyse_corps(buffer_t *buffer, ast_list_t *list_lines, sym_table_t 
         exit(1);
     }
     buf_skipblank(buffer);
-    list_lines = NULL;
-
-    while ((ch = buf_getchar(buffer)) != '}')
-    {
-        buf_lock(buffer);
-        buf_rollback(buffer, 1);
-        printf("c une instruction");
-        list_lines = analyse_instruction(buffer, list_lines, global_sym_table, local_table);
-        buf_skipblank(buffer);
-    }
+    list_lines = analyse_instruction(buffer, NULL, global_sym_table, local_table);
     
     if (ch != '}') {
         printf("ERROR %d : %d : Expected '}' at the end of function body\n", buf_getline);
