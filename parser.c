@@ -193,6 +193,29 @@ ast_list_t* analyse_corps(buffer_t *buffer, ast_list_t *list_lines, sym_table_t 
     Crée un ast new_comp_stmt
     return l'ast
      */
+    char ch = buf_getchar_after_blank(buffer);
+    if (ch != '{') {
+        printf("ERROR line %d : Expected '{' at the beginning of function body\n", buf_getline());
+        exit(1);
+    }
+    buf_skipblank(buffer);
+    list_lines = NULL;
+
+    while ((ch = buf_getchar(buffer)) != '}')
+    {
+        buf_rollback(buffer, 1);
+        list_lines = analyse_instruction(buffer, list_lines, global_sym_table, local_table);
+        buf_skipblank(buffer);
+    }
+    
+    if (ch != '}') {
+        printf("ERROR line %d : Expected '}' at the end of function body\n", buf_getline);
+        exit(1);
+    }
+
+    ast_t *comp_stmt = ast_new_comp_stmt(list_lines);
+    return ast_list_new_node(comp_stmt);
+    
 }
 
 //analyse une instruction jusqu'a son ";"
