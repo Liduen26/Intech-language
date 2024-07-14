@@ -388,25 +388,42 @@ void check_valid_name(buffer_t *buffer){
     }
    
     free(word);
-
-    return true;
 }
 
 //renvoie true si c'est une fonction et false si non
 bool is_function(buffer_t *buffer) {
     /**
-    Si check_valid_name == true
+    check_valid_name()
         get alphanum
         recup longueur de la string (strlen)
         skip blank
         next_char
         rollback strlen + 1 (la parenthese)
         Si next_char == '('
-            // TODO Verfier que la var exist dans la table des symboles globale sinon crash
             return true
-    
     return false
+
      */
+    
+    check_valid_name(buffer);
+
+    //recup le nom de la fonction
+    char *name = lexer_getalphanum(buffer);
+    if (name == NULL){
+        return false;
+    }
+
+    size_t name_length = strlen(buffer);
+    buf_getchar_after_blank(buffer);
+    char next_char = buf_getchar(buffer);
+    buf_rollback(buffer, name_length + 1);
+
+    //check si c'est une '(' après le nom de la fonction
+    if (next_char == '('){
+        return true;
+    }
+    return false;
+
 }
 bool is_conditional_operator(const char *op) {
     const char *operators[] = {">=", ">", "<", "<=", "==", "!="};
