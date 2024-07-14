@@ -73,7 +73,7 @@ ast_t* analyse_function(sym_table_t *global_sym_table, buffer_t *buffer) {
     return func_node;
 }
 
-//analyse les paramètres d'un fonction, si "=", recursive
+//analyse les paramètres d'un fonction, si ',', recursive, si ')' fin
 ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param, sym_table_t *local_table) {
     /**
     Skip blank
@@ -100,15 +100,19 @@ ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param, sym_table_t 
     // cherche un type
     char *type = lexer_getalphanum(buffer);
     if (type == NULL) {
-        printf("Incorrect char in parameter type");
+        printf("ERROR : Incorrect char in parameter type");
         exit(1);
     }
     var_type_e type_e = type_str_to_enum(type);
+    if (type_e == NULL) {
+        printf("ERROR : Incorrect type name !");
+        exit(1);
+    }
 
     // Cherche une var
     char *param_name = lexer_getalphanum(buffer);
     if (param_name == NULL) {
-        printf("Incorrect var name in parameter");
+        printf("ERROR : Incorrect var name in parameter");
         exit(1);
     }
 
@@ -174,9 +178,9 @@ ast_t* analyse_corps(buffer_t *buffer, ast_list_t *list_lines, sym_table_t *glob
 //analyse une instruction jusqu'a son ";"
 ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions, sym_table_t *global_sym_table, sym_table_t *local_table){
     /**
+    /////////////////////////////////////////////////
     Skip blank
     word = lexem_getalphanum 
-    // TODO Mettre des vérifs pour les mots clé logiques (if, while, return) faut pas qu'il aille vérifier fonction/var
     switch (word)
     {
     case if:
@@ -267,6 +271,25 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
 
     return
     */
+
+    char *first_word = lexer_getalphanum(buffer);
+
+    if (strcmp(first_word, "if") == 0) {
+        // le mot est un if
+
+    } else if (strcmp(first_word, "while") == 0) {
+        // le mot est un while
+
+    } else if (strcmp(first_word, "return") == 0) {
+        // le mot est un return
+
+    } else {
+        // le mot est autre chose, comme une var ou un appel de fonction
+
+    }
+   
+
+
 }
 
 // Analyse une condition (2 < 3)
@@ -477,7 +500,6 @@ var_type_e type_str_to_enum(char* type_str) {
     } else if (strcmp(type_str, "void") == 0) {
         return VOID;
     } else {
-        printf("ERROR : Incorrect type name !");
-        exit(1);
+        return NULL;
     }
 }

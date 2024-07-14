@@ -182,15 +182,19 @@ long *lexer_getnumber(buffer_t *buffer) {
 }
 
 
-char* lexer_getnumber_rollback(buffer_t *buffer) {
+long* lexer_getnumber_rollback(buffer_t *buffer) {
     buf_lock(buffer);
-    char *string = lexer_getnumber(buffer);
-    if (string != NULL) {
-        buf_rollback(buffer, strlen(string));
+    long *num = lexer_getnumber(buffer);
+    // Transforme l'int en string pour calculer sa longueur
+    char buffer_int[50];
+    sprintf(buffer_int, "%ld", num);
+
+    if (num != NULL) {
+        buf_rollback(buffer, strlen(buffer_int));
     }
     
     buf_unlock(buffer);
-    return string;
+    return num;
 }
 
 void lexer_test(buffer_t *buffer){
