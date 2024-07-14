@@ -478,7 +478,6 @@ ast_list_t* analyse_args(buffer_t *buffer, ast_list_t *list_args, sym_table_t *g
     sinon
         add liste avec la var trouvée
 
-    ///////////////////////////////////////////////////
     Si détecte , = recursif (rappel analyse_args)
     Si détecte ) return
     return list 
