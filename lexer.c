@@ -116,6 +116,18 @@ char *lexer_getop(buffer_t *buffer) {
     return NULL;
 }
 
+char* lexer_getop_rollback(buffer_t *buffer) {
+    buf_lock(buffer);
+    char *string = lexer_getop(buffer);
+    if (string != NULL) {
+        buf_rollback(buffer, strlen(string));
+    }
+    
+    buf_unlock(buffer);
+    return string;
+}
+
+
 
 long *lexer_getnumber(buffer_t *buffer) {
     buf_skipblank(buffer);
@@ -166,6 +178,18 @@ long *lexer_getnumber(buffer_t *buffer) {
         buf_unlock(buffer);
         return NULL;
     }
+}
+
+
+char* lexer_getnumber_rollback(buffer_t *buffer) {
+    buf_lock(buffer);
+    char *string = lexer_getnumber(buffer);
+    if (string != NULL) {
+        buf_rollback(buffer, strlen(string));
+    }
+    
+    buf_unlock(buffer);
+    return string;
 }
 
 void lexer_test(buffer_t *buffer){
