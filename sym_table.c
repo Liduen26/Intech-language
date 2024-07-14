@@ -53,7 +53,7 @@ void print_table(sym_table_t *node_list) {
     }
 }
 
-var_type_e *get_type(sym_table_t *list_head, ast_t *node) {
+var_type_e get_type(sym_table_t *list_head, ast_t *node) {
     sym_table_t *current = list_head;
     if (node == NULL) {
         exit(1);
@@ -64,13 +64,13 @@ var_type_e *get_type(sym_table_t *list_head, ast_t *node) {
         {
         case AST_FUNCTION:
             if (current->node->function.name == node->function.name) {
-                return &current->node->function.return_type;
+                return current->node->function.return_type;
             }
             break;
 
         case AST_VARIABLE:
             if (current->node->var.name == node->var.name) {
-                return &current->node->var.type;
+                return current->node->var.type;
             }
             break;
 
@@ -80,7 +80,7 @@ var_type_e *get_type(sym_table_t *list_head, ast_t *node) {
         }
     }
 
-    return NULL;
+    return INVALID_TYPE;
 }
 
 void crash_if_exist(sym_table_t *list_head, ast_t *node) {

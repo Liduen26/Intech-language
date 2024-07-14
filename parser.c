@@ -203,12 +203,12 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
     switch (word)
     {
     case if:
-    /////////////////////////////////////////////////
         analyse_condition < condition
         analyse_corps < valid
         get_alphanum_rollback
         si "else"
             get_alphanum
+    /////////////////////////////////////////////////
             get_alphanum_rollback
             Si "if"
                 recursif et return un conditional < invalid
@@ -274,7 +274,6 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
             rollback 1
         Sinon 
             crash :(
-    /////////////////////////////////////////////////
 
     Si endchar = '}' :
         return asignment
@@ -283,6 +282,7 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
         break;
     }
 
+    /////////////////////////////////////////////////
     return
     */
 
@@ -293,6 +293,36 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
 
     if (strcmp(first_word, "if") == 0) {
         // le mot est un if
+        ast_t *ast_operation = analyse_condition(buffer, global_sym_table, local_table);
+        ast_list_t *list_corps_if = analyse_corps(buffer, NULL, global_sym_table, local_table);
+        ast_list_t *list_corps_else;
+
+        char *next_word = lexer_getalphanum_rollback(buffer);
+        if (strcmp(next_word, "else") == 0) {
+            // y a un else
+            lexer_getalphanum(buffer);
+
+            next_word = lexer_getalphanum_rollback(buffer);
+            if (strcmp(next_word, "if") == 0) {
+                // else if
+                analyse_instruction(buffer, NULL, global_sym_table, local_table);
+            } else {
+                // else
+                char next_char = buf_getchar_after_blank(buffer);
+                if (next_char == '{') {
+                    list_corps_else = analyse_corps(buffer, NULL, global_sym_table, local_table);
+                } else {
+                    printf("ERROR line %d : '{' expected \n", buf_getline());
+                    exit(1);
+                }
+            }
+        }
+        
+        ast_t *ast_valid = ast_new_comp_stmt(list_corps_if);
+        ast_t *ast_invalid = ast_new_comp_stmt(list_corps_else);
+        ast_t *ast_condition = ast_new_condition(ast_operation, ast_valid, ast_invalid);
+
+        list_result = ast_list_add(&list_instructions, ast_condition);
 
     } else if (strcmp(first_word, "while") == 0) {
         // le mot est un while
@@ -332,11 +362,11 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
                 // C'est une variable
                 char *var_name = lexer_getalphanum(buffer);
 
-                ast_left = ast_new_variable(var_name, NULL);
+                ast_left = ast_new_variable(var_name, VOID);
                 ast_left->var.type = get_type(local_table, ast_left);
 
                 free(var_name);
-                if (ast_left->var.type == NULL) {
+                if (ast_left->var.type == INVALID_TYPE) {
                     printf("ERROR line %d : Variable %s not declared\n", buf_getline(), var_name);
                     exit(1);
                 }
@@ -345,41 +375,41 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
             next_char = buf_getchar_after_blank(buffer);
             if (next_char == ';') {
                 // Unaire
-                list_result = ast_list_add(list_instructions, ast_left);
+                list_result = ast_list_add(&list_instructions, ast_left);
 
             } else if (next_char == '=') {
                 // Assignment
                 ast_t *ast_right = parse_expression(buffer, INSTRUCTION, global_sym_table, local_table);
                 ast_t *ast_assignment = ast_new_assignment(ast_left, ast_right);
-                list_result = ast_list_add(list_instructions, ast_assignment);
+                list_result = ast_list_add(&list_instructions, ast_assignment);
                 
             } else {
                 printf("ERROR line %d : Char ';' or '=' expected", buf_getline());
                 exit(1);
             }
-
-        }
-        
-        next_char = buf_getchar_after_blank(buffer);
-        buf_rollback(buffer, 1);
-
-        if (next_char = '}') {
-            // Fin de la fonction, on return
-            return list_result;
-        } else {
-            // Recurisivité, analyse de la prochaine ligne
-            analyse_instruction(buffer, list_result, global_sym_table, local_table);
         }
         
         free(type);
     }
+        
+    next_char = buf_getchar_after_blank(buffer);
+    buf_rollback(buffer, 1);
+
+    if (next_char = '}') {
+        // Fin de la fonction, on return
+        return list_result;
+    } else {
+        // Recurisivité, analyse de la prochaine ligne
+        analyse_instruction(buffer, list_result, global_sym_table, local_table);
+    }
+    
    
     free(first_word);
 
 }
 
 // Analyse une condition (2 < 3)
-ast_t analyse_condition(buffer_t *buffer, sym_table_t *global_sym_table, sym_table_t *local_table) {
+ast_t *analyse_condition(buffer_t *buffer, sym_table_t *global_sym_table, sym_table_t *local_table) {
     /*
     Skipblank
     getchar "("
@@ -403,6 +433,67 @@ ast_t analyse_condition(buffer_t *buffer, sym_table_t *global_sym_table, sym_tab
 //check si func ou var et agit, check binary operator et recursive 
 ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global_sym_table, sym_table_t *local_table){
 
+    char *num = lexer_getalphanum_rollback(buffer);
+    ast_t *node = NULL;
+
+    if(num == NULL){
+
+        if (is_function(buffer))
+        {
+            //c'est une fonction
+            char *func_name = lexer_getalphanum(buffer);
+            ast_list_t *args = analyse_args(buffer, NULL, global_sym_table, local_table);
+            node = ast_new_fncall(func_name, args);
+        } else {
+            //c'est une variable
+            char *var_name = lexer_getalphanum(buffer);
+            var_type_e var_type = get_type(local_table, ast_new_variable(var_name, NULL));
+
+            if (var_type == INVALID_TYPE){
+                printf("ERRROR line %d : Variable %s nor declared\n", buf_getline(), var_name);
+                exit(1);
+            }
+
+            node = ast_new_variable(var_name, var_type);
+
+        }
+        
+    } else {
+        //c'est un nombre
+        long value = strtol(num, NULL, 50);
+        node = ast_new_integer(value);
+    }
+
+    char next_char = buf_getchar_after_blank(buffer);
+
+    //check le char after blank et return + rollback
+    if ((next_char == ';' && context == INSTRUCTION) || (next_char == ',' && context == ARGUMENT) || 
+    (is_conditional_operator(&next_char) && context == CONDITION) || (next_char == ')' && context == ARGUMENT)) {
+        buf_rollback(buffer, 1);
+        return node;
+    }
+
+    //check char after blank et return
+    if (next_char == ')') {
+        buf_getchar_after_blank(buffer);
+        if (buf_getchar(buffer) == ';') {
+            return node;
+        }
+    }
+
+    //get operator
+    if (next_char != ';') {
+        buf_rollback(buffer, 1);
+        char *operator = lexer_getop(buffer);
+        if (operator == NULL) {
+            printf("ERROR line %d : Operator expected\n", buf_getline());
+            exit(1);
+        }
+        ast_t *ast_right = parse_expression(buffer, context, global_sym_table, local_table);
+        node = ast_new_binary(op_str_to_enum(operator), node, ast_right);
+
+    }
+    return node;
 
     /**
     Skipblank
