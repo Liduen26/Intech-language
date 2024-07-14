@@ -56,8 +56,9 @@ ast_t* analyse_function(sym_table_t *global_sym_table, buffer_t *buffer) {
     création de l’AST pour la fonction “main” avec les paramètres, type de retour et corps de
     fonction
      */
-
     char *func_name = lexer_getalphanum(buffer);
+    buf_print(buffer);
+    printf("Lecture nom de la fonction %s\n", func_name);
 
     sym_table_t *local_table;
 
@@ -122,7 +123,7 @@ ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param, sym_table_t 
     sym_list_add(&local_table, ast_var);
     
     ast_list_t *list_parameter = ast_list_add(&list_param, ast_var);
-
+    printf("Lecture des parametres de la fonctions : %s\n", list_parameter);
     // Regarde le prochain char pour savoir si c'est une "," ou pas
     char next_char = buf_getchar_after_blank(buffer);
     if (next_char == ',') {
