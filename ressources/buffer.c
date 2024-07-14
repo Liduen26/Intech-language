@@ -6,7 +6,7 @@
 #include "buffer.h"
 #include "utils.h"
 
-int line;
+int line = 1;
 
 void buf_init (buffer_t *buffer, FILE* fd)
 {

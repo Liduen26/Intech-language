@@ -98,19 +98,19 @@ ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param, sym_table_t 
     // cherche un type
     char *type = lexer_getalphanum(buffer);
     if (type == NULL) {
-        printf("ERROR : Incorrect char in parameter type");
+        printf("ERROR line %d : Incorrect char in parameter type\n", buf_getline());
         exit(1);
     }
     var_type_e type_e = type_str_to_enum(type);
     if (type_e == INVALID_TYPE) {
-        printf("ERROR : Incorrect type name !");
+        printf("ERROR line %d : Incorrect type name !\n", buf_getline());
         exit(1);
     }
 
     // Cherche une var
     char *param_name = lexer_getalphanum(buffer);
     if (param_name == NULL) {
-        printf("ERROR : Incorrect var name in parameter");
+        printf("ERROR line %d : Incorrect var name in parameter\n", buf_getline());
         exit(1);
     }
 
@@ -451,6 +451,29 @@ ast_t *analyse_condition(buffer_t *buffer, sym_table_t *global_sym_table, sym_ta
     
     return l'ast
     */
+    char ch = buf_getchar_after_blank(buffer);
+    if (ch != '(') {
+        printf("ERROR line %d : Expected '(' at the beginning of condition\n", buf_getline());
+        exit(1);
+    }
+
+    ast_t *ast_left = parse_expression(buffer, CONDITION, global_sym_table, local_table);
+    char *op = lexer_getop(buffer);
+    if ((op == NULL) || !is_conditional_operator(op)) {
+        printf("ERROR line %d : Expected a conditional operator\n", buf_getline());
+        exit(1);
+    }
+
+    ast_t *ast_right = parse_expression(buffer, CONDITION, global_sym_table, local_table);
+    ast_t *condition = ast_new_binary(op_str_to_enum(op), ast_left, ast_right);
+    free(op);
+
+    ch = buf_getchar(buffer);
+    if (ch != ')') {
+        printf("ERROR line %d : Expected ')' at the end of condition\n", buf_getline());
+        exit(1);
+    }
+    return condition;
 }
 
 //check si func ou var et agit, check binary operator et recursive 

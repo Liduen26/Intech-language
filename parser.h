@@ -21,9 +21,7 @@ ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param, sym_table_t 
 var_type_e analyse_return(buffer_t *buffer);
 
 ast_list_t* analyse_corps(buffer_t *buffer, ast_list_t *list_instructions, sym_table_t *global_sym_table, sym_table_t *local_table);
-//TODO
 ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions, sym_table_t *global_sym_table, sym_table_t *local_table);
-//TODO
 ast_t *analyse_condition(buffer_t *buffer, sym_table_t *global_sym_table, sym_table_t *local_table);
 
 ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global_sym_table, sym_table_t *local_table);
