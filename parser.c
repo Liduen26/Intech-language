@@ -77,22 +77,16 @@ ast_t* analyse_function(sym_table_t *global_sym_table, buffer_t *buffer) {
 ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param, sym_table_t *local_table) {
     /**
     Skip blank
-    Si '(' alors first=true
     cherche Var (type + nom)
     get_alphanum type
     vérifier dans l'enum si le type existe
 
     Si type existe pas :
         crash :(
-    check_valid_name
     get_alphanum nom 
+    check_valid_name
     crée ast_t de la déclaration de var
     sym_list_add dans la table locale du nouveau node
-
-    Si first
-        new liste avec la var trouvée
-    sinon
-        add liste avec la var trouvée
 
     Si détecte , = recursif (rappel analyse_param)
     get_char
@@ -100,19 +94,47 @@ ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param, sym_table_t 
     return list 
      */
 
+    // Cherche une ( en premier char
     char first_char = buf_getchar_after_blank(buffer);
-    bool first = false;
-    if (first_char == ')') {
-        first = true;
+
+    // cherche un type
+    char *type = lexer_getalphanum(buffer);
+    if (type == NULL) {
+        printf("Incorrect char in parameter type");
+        exit(1);
+    }
+    var_type_e type_e = type_str_to_enum(type);
+
+    // Cherche une var
+    char *param_name = lexer_getalphanum(buffer);
+    if (param_name == NULL) {
+        printf("Incorrect var name in parameter");
+        exit(1);
     }
 
-    char* type = lexer_getalphanum(buffer);
-    if (/* condition */)
-    {
-        /* code */
+    ast_t *ast_var = ast_new_variable(param_name, type);
+    
+    // Ajoute a la table des symboles et crash si elle est déjà dedans
+    sym_list_add(local_table, ast_var);
+    
+    ast_list_t *list_parameter = ast_list_add(list_param, ast_var);
+
+    // Regarde le prochain char pour savoir si c'est une "," ou pas
+    char next_char = buf_getchar_after_blank(buffer);
+    if (next_char == ',') {
+        free(type);
+        free(param_name);
+        analyse_param(buffer, list_parameter, local_table);
+    } else if (next_char == ')') {
+        free(type);
+        free(param_name);
+        return list_parameter;
+    } else {
+        printf("ERROR : ',' or ')' expected after a parameter");
+        exit(1);
     }
-    
-    
+
+    return list_parameter;
 }
 
 //analyse le return d'une déclaration de fonction
