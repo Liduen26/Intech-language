@@ -239,7 +239,6 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
                 check_already_exist dans la table locale et récup le type de la var
 
                 crée ast de la variable
-    /////////////////////////////////////////////////
 
         Skipblank
         Lire next char
@@ -253,19 +252,22 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
             rollback 1
         Sinon 
             crash :(
+    /////////////////////////////////////////////////
 
-        Si endchar = '}' :
-            return asignment
-        Sinon
-            analyse_instruction (recursivité)
-            break;
-        }
+    Si endchar = '}' :
+        return asignment
+    Sinon
+        analyse_instruction (recursivité)
+        break;
+    }
 
     return
     */
 
     char *first_word = lexer_getalphanum_rollback(buffer);
-    ast_t *ast_result;
+    ast_list_t *list_result;
+    ast_t *ast_left;
+    char next_char;
 
     if (strcmp(first_word, "if") == 0) {
         // le mot est un if
@@ -283,9 +285,10 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
         if (type_e != INVALID_TYPE) {
             // Type, c'est donc une déclaration de var
             char *var_name = lexer_getalphanum(buffer);
-            ast_result = ast_new_variable(var_name, type_e);
+            ast_left = ast_new_variable(var_name, type_e);
 
-            sym_list_add(&local_table, ast_result);
+            sym_list_add(&local_table, ast_left);
+            free(var_name);
         } else {
             // Pas un type, c'est un appel de var ou de fonction
             
@@ -299,27 +302,57 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
 
                 // TODO Regarde la table des symboles pour vérifier qu'on a le bon nombre de params avec le bon type au bon endroit
 
-                ast_result = ast_new_fncall(func_name, list_args);
-                crash_if_exist(global_sym_table, ast_result);
+                ast_left = ast_new_fncall(func_name, list_args);
+
+                free(func_name);
+                crash_if_exist(global_sym_table, ast_left);
             } else {
                 // C'est une variable
                 char *var_name = lexer_getalphanum(buffer);
 
-                ast_result = ast_new_variable(var_name, NULL);
-                ast_result->var.type = get_type(local_table, ast_result);
+                ast_left = ast_new_variable(var_name, NULL);
+                ast_left->var.type = get_type(local_table, ast_left);
 
-                if (ast_result->var.type == NULL) {
-                    printf("ERROR line %d : Call of an undefined variable");
+                free(var_name);
+                if (ast_left->var.type == NULL) {
+                    printf("ERROR line %d : Variable %s not declared\n", buf_getline(), var_name);
                     exit(1);
                 }
-                
             }
             
+            next_char = buf_getchar_after_blank(buffer);
+            if (next_char == ';') {
+                // Unaire
+                list_result = ast_list_add(list_instructions, ast_left);
+
+            } else if (next_char == '=') {
+                // Assignment
+                ast_t *ast_right = parse_expression(buffer, INSTRUCTION, global_sym_table, local_table);
+                ast_t *ast_assignment = ast_new_assignment(ast_left, ast_right);
+                list_result = ast_list_add(list_instructions, ast_assignment);
+                
+            } else {
+                printf("ERROR line %d : Char ';' or '=' expected", buf_getline());
+                exit(1);
+            }
+
         }
         
+        next_char = buf_getchar_after_blank(buffer);
+        buf_rollback(buffer, 1);
+
+        if (next_char = '}') {
+            // Fin de la fonction, on return
+            return list_result;
+        } else {
+            // Recurisivité, analyse de la prochaine ligne
+            analyse_instruction(buffer, list_result, global_sym_table, local_table);
+        }
+        
+        free(type);
     }
    
-
+    free(first_word);
 
 }
 
