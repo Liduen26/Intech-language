@@ -231,7 +231,6 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
         get_alphanum_rollback
         si "else"
             get_alphanum
-    /////////////////////////////////////////////////
             get_alphanum_rollback
             Si "if"
                 recursif et return un conditional < invalid
@@ -247,6 +246,7 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
         break;
 
     case while:
+    /////////////////////////////////////////////////
         analyse_condition < condition
         analyse_corps < stmt
         ast new_loop
@@ -316,6 +316,7 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
 
     if (strcmp(first_word, "if") == 0) {
         // le mot est un if
+        lexer_getalphanum(buffer);
         ast_t *ast_operation = analyse_condition(buffer, global_sym_table, local_table);
         ast_list_t *list_corps_if = analyse_corps(buffer, NULL, global_sym_table, local_table);
         ast_list_t *list_corps_else;
@@ -349,10 +350,22 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
 
     } else if (strcmp(first_word, "while") == 0) {
         // le mot est un while
+        lexer_getalphanum(buffer);
+        ast_t *ast_operation = analyse_condition(buffer, global_sym_table, local_table);
+        ast_list_t *list_corps_while = analyse_corps(buffer, NULL, global_sym_table, local_table);
+
+        ast_t *ast_loop = ast_new_loop(ast_operation, list_corps_while);
+
+        list_result = ast_list_add(&list_instructions, ast_loop);
 
     } else if (strcmp(first_word, "return") == 0) {
         // le mot est un return
+        lexer_getalphanum(buffer);
 
+        ast_t *ast_expression = parse_expression(buffer, INSTRUCTION, global_sym_table, local_table);
+        ast_t *ast_return = ast_new_return(ast_expression);
+
+        list_result = ast_list_add(&list_instructions, ast_return);
     } else {
         // le mot n'est pas un mot-clé logique, c'est donc var ou un appel de fonction
         char *type = lexer_getalphanum(buffer);
@@ -551,7 +564,7 @@ ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global
             var_type_e var_type = get_type(local_table, ast_new_variable(var_name, VOID));
 
             if (var_type == INVALID_TYPE){
-                printf("ERRROR line %d : Variable %s nor declared\n", buf_getline(), var_name);
+                printf("ERRROR line %d : Variable %s not declared\n", buf_getline(), var_name);
                 exit(1);
             }
 
