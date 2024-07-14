@@ -178,12 +178,12 @@ ast_list_t* analyse_corps(buffer_t *buffer, ast_list_t *list_lines, sym_table_t 
 //analyse une instruction jusqu'a son ";"
 ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions, sym_table_t *global_sym_table, sym_table_t *local_table){
     /**
-    /////////////////////////////////////////////////
     Skip blank
     word = lexem_getalphanum 
     switch (word)
     {
     case if:
+    /////////////////////////////////////////////////
         analyse_condition < condition
         analyse_corps < valid
         get_alphanum_rollback
@@ -215,22 +215,16 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
         break:
 
     default:
+        check enum pour voir si le type existe
         Si c'est un type
-            check enum pour voir si le type existe
+            get_alphanum
+            creation ast new_declation
 
-            Si existe pas :
-                crash :(
-
-            Si le type existe :
-                stock l'enum dans une variable 
-                check_valid_name
-                get_alphanum
-                creation ast new_declation
-
-                sym_list_add dans la table locale du nouveau node
+            sym_list_add dans la table locale du nouveau node
                 
         Sinon 
             check_valid_name
+    /////////////////////////////////////////////////
             isFunc = is_function
 
             Si isFunc == true
@@ -273,6 +267,7 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
     */
 
     char *first_word = lexer_getalphanum(buffer);
+    ast_t *ast_result;
 
     if (strcmp(first_word, "if") == 0) {
         // le mot est un if
@@ -284,8 +279,23 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
         // le mot est un return
 
     } else {
-        // le mot est autre chose, comme une var ou un appel de fonction
+        // le mot n'est pas un mot-clé logique, c'est donc var ou un appel de fonction
+        var_type_e type = type_str_to_enum(first_word);
+        if (type != INVALID_TYPE) {
+            // Type, c'est donc une déclaration de var
+            char *var_name = lexer_getalphanum(buffer);
+            ast_result = ast_new_variable(var_name, type);
 
+            sym_list_add(&local_table, ast_result);
+        } else {
+            // Pas un type, c'est un appel de var ou de fonction
+            
+            // Crash si c'est pas qqchose de valide
+            check_valid_name(buffer);
+
+
+        }
+        
     }
    
 
@@ -495,6 +505,7 @@ bool is_conditional_operator(const char *op) {
     return false;
 }
 
+// Renvoie l'enum de type en fonction de la var d'entrée
 var_type_e type_str_to_enum(char* type_str) {
     if (strcmp(type_str, "int") == 0) {
         return INT;

@@ -36,5 +36,7 @@ void buf_unlock (buffer_t *buffer);
 void buf_rollback_and_unlock (buffer_t *buffer, size_t n);
 size_t buf_skipblank (buffer_t *buffer);
 
+int buf_getline();
+
 #define BUFFER_H
 #endif /* BUFFER_H */

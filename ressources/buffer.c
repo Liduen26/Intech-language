@@ -6,6 +6,8 @@
 #include "buffer.h"
 #include "utils.h"
 
+int line;
+
 void buf_init (buffer_t *buffer, FILE* fd)
 {
   memset(buffer->content, 0, BUF_SIZE);
@@ -214,6 +216,9 @@ size_t buf_skipblank (buffer_t *buffer)
   size_t count = 0;
   char next = buf_getchar(buffer);
   while (ISBLANK(next)) {
+    if (next == '\n') {
+      line++;
+    }
     next = buf_getchar(buffer);
     count++;
   }
@@ -225,6 +230,10 @@ size_t buf_skipblank (buffer_t *buffer)
     buffer->avail = 0;
   }
   return count;
+}
+
+int buf_getline() {
+  return line;
 }
 
 
