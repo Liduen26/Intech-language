@@ -348,7 +348,7 @@ ast_list_t* analyse_args(buffer_t *buffer, ast_list_t list_args, sym_table_t *gl
      */
 }
 
-//renvoie true si le nom de fonction/var est bon sinon crash
+// Renvoie true si le nom de fonction/var est bon sinon crash
 void check_valid_name(buffer_t *buffer){
     /**
     Skipblank
@@ -364,12 +364,29 @@ void check_valid_name(buffer_t *buffer){
     Si == NULL
         crash :(
     
-    stock le nom dans une variable
-
     return true, pak tout est ok
 
     // C'est sensé crash à chaque fois que ça respecte pas
     */
+    buf_skipblank(buffer);
+    char* word = lexer_getop_rollback(buffer);
+    if (word != NULL) {
+        printf("Les variables et les fonctions doivent commencer par un caractère alphanumérique !");
+        exit(1);
+    }
+    word = lexer_getop_rollback(buffer);
+    if (word != NULL) {
+        printf("Les variables et les fonctions doivent commencer par un caractère alphanumérique !");
+        exit(1);
+    }
+
+    word = lexer_getnumber_rollback(buffer);
+    if (word == NULL) {
+        printf("Les variables et les fonctions doivent commencer par un caractère alphanumérique !");
+        exit(1);
+    }
+   
+    return true;
 }
 
 //renvoie true si c'est une fonction et false si non
