@@ -71,6 +71,7 @@ bool is_operator(const char *op) {
 }
 
 char *lexer_getop(buffer_t *buffer) {
+    buf_skipblank(buffer);
     char temp_op[3] = {0};
     bool was_locked = buffer->islocked;
 

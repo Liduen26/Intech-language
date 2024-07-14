@@ -99,6 +99,8 @@ ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param, sym_table_t 
     Si détecte ) return
     return list 
      */
+
+    buf_getchar_after_blank(buffer);
 }
 
 //analyse le return d'une déclaration de fonction
@@ -368,7 +370,6 @@ void check_valid_name(buffer_t *buffer){
 
     // C'est sensé crash à chaque fois que ça respecte pas
     */
-    buf_skipblank(buffer);
     char* word = lexer_getop_rollback(buffer);
     if (word != NULL) {
         printf("Les variables et les fonctions doivent commencer par un caractère alphanumérique !");
@@ -386,6 +387,8 @@ void check_valid_name(buffer_t *buffer){
         exit(1);
     }
    
+    free(word);
+
     return true;
 }
 
