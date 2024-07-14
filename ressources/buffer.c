@@ -37,7 +37,7 @@ bool buf_eof (buffer_t *buffer) {
 
 void buf_lock (buffer_t *buffer) {
   if (buffer->islocked) {
-    fprintf(stderr, "Warning %d : %d : lock was already set.\n", buf_getline(), buf_getcol());
+    print_warn("lock was already set.");
     print_backtrace();
   }
   buffer->bytesreadsincelock = 0;
@@ -47,7 +47,7 @@ void buf_lock (buffer_t *buffer) {
 
 void buf_unlock (buffer_t *buffer) {
   if (!buffer->islocked) {
-    fprintf(stderr, "Warning %d : %d : lock was not set.\n", buf_getline(), buf_getcol());
+    print_warn("lock was already set.");
     print_backtrace();
   }
   buffer->bytesreadsincelock = 0;
@@ -193,7 +193,7 @@ void buf_forward (buffer_t *buffer, size_t n)
 void buf_rollback (buffer_t *buffer, size_t n)
 {
   if (!buffer->islocked) {
-    fprintf(stderr, "Warning %d : %d : rollback without lock.\n", buf_getline(), buf_getcol());
+    print_warn("rollback wthout lock.");
     print_backtrace();
   }
   buf_move_it_bw(buffer, n);

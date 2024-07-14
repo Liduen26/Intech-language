@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+
 #include "ressources/buffer.h"
 #include "ressources/utils.h"
 #include "lexer.h"
@@ -7,13 +8,12 @@
 #include "parser.h"
 #include "sym_table.h"
 
-const bool TRACE = true;
-
 ast_list_t* parser(buffer_t *buffer) {
     ast_list_t *func_list;
     sym_table_t *global_sym_table;
 
-    print_trace("Parser start");
+    char * test = "c'est un test";
+    print_trace("Parser start %s", test);
     
     while (!buf_eof_strict(buffer))
     {
@@ -59,7 +59,7 @@ ast_t* analyse_function(sym_table_t *global_sym_table, buffer_t *buffer) {
     char *func_name = lexer_getalphanum(buffer);
     printf("Lecture nom de la fonction %s\n", func_name);
 
-    sym_table_t *local_table;
+    sym_table_t *local_table = NULL;
 
     ast_list_t *list_param = analyse_param(buffer, NULL, local_table);
     var_type_e return_type = analyse_return(buffer);
@@ -93,7 +93,6 @@ ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param, sym_table_t 
     Si détecte ) return
     return list 
      */
-
     // Cherche une ( en premier char
     char first_char = buf_getchar_after_blank(buffer);
     if (first_char != '(') {
@@ -105,42 +104,41 @@ ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param, sym_table_t 
     // cherche un type
     char *type = lexer_getalphanum(buffer);
     if (type == NULL) {
-        printf("ERROR %d : %d : Incorrect char in parameter type\n", buf_getline(), buf_getcol());
+        print_error("Incorrect char in parameter type");
         exit(1);
     }
     var_type_e type_e = type_str_to_enum(type);
     if (type_e == INVALID_TYPE) {
-        printf("ERROR %d : %d : Incorrect type name !\n", buf_getline(), buf_getcol());
+        print_error("Incorrect type name !");
         exit(1);
     }
 
     // Cherche une var
     char *param_name = lexer_getalphanum(buffer);
     if (param_name == NULL) {
-        printf("ERROR %d : %d : Incorrect var name in parameter\n", buf_getline(), buf_getcol());
+        print_error("Incorrect var name in parameter");
         exit(1);
     }
-
     ast_t *ast_var = ast_new_variable(param_name, type_e);
     
     // Ajoute a la table des symboles et crash si elle est déjà dedans
     sym_list_add(&local_table, ast_var);
     
     ast_list_t *list_parameter = ast_list_add(&list_param, ast_var);
-    printf("Lecture du parametre : %s\n", list_parameter->node->var.name);
+    print_trace("Lecture du parametre : %s", list_parameter->node->var.name);
 
     // Regarde le prochain char pour savoir si c'est une "," ou pas
     char next_char = buf_getchar_after_blank(buffer);
     if (next_char == ',') {
+        analyse_param(buffer, list_parameter, local_table);
         free(type);
         free(param_name);
-        analyse_param(buffer, list_parameter, local_table);
     } else if (next_char == ')') {
         free(type);
         free(param_name);
         return list_parameter;
     } else {
-        printf("ERROR %d : %d : ',' or ')' expected after a parameter\n", buf_getline(), buf_getcol());
+        print_error("',' or ')' expected after a parameter");
         exit(1);
     }
 
@@ -163,21 +161,21 @@ var_type_e analyse_return(buffer_t *buffer) {
      */
     char ch = buf_getchar_after_blank(buffer);
     if (ch != ':') {
-        printf("ERROR %d : %d : Expected ':' for return type of declaration\n", buf_getline(), buf_getcol());
+        print_error("Expected ':' for return type of declaration");
         exit(1);
     }
 
     buf_skipblank(buffer);
     char *return_type_str = lexer_getalphanum(buffer);
     if (return_type_str == NULL){
-        printf("ERROR %d : %d : Expected return type after ':'\n", buf_getline(), buf_getcol());
+        print_error("Expected return type after ':'");
         free(return_type_str);
         exit(1);
     }
 
     var_type_e return_type = type_str_to_enum(return_type_str);
     if (return_type == INVALID_TYPE) {
-        printf("ERROR %d : %d : Invalid return type '%s'\n", buf_getline(), buf_getcol(), return_type_str);
+        print_error("Invalid return type '%s'", return_type_str);
         exit(1);
     }
 
@@ -203,14 +201,14 @@ ast_list_t* analyse_corps(buffer_t *buffer, ast_list_t *list_lines, sym_table_t 
      */
     char ch = buf_getchar_after_blank(buffer);
     if (ch != '{') {
-        printf("ERROR %d : %d : Expected '{' at the beginning of function body\n", buf_getline(), buf_getcol(), buf_getcol());
+        print_error("Expected '{' at the beginning of function body");
         exit(1);
     }
     buf_skipblank(buffer);
     list_lines = analyse_instruction(buffer, NULL, global_sym_table, local_table);
     
     if (ch != '}') {
-        printf("ERROR %d : %d : Expected '}' at the end of function body\n", buf_getline(), buf_getcol());
+        print_error("Expected '}' at the end of function body");
         exit(1);
     }
 
@@ -247,7 +245,6 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
         break;
 
     case while:
-    /////////////////////////////////////////////////
         analyse_condition < condition
         analyse_corps < stmt
         ast new_loop
@@ -306,7 +303,6 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
         break;
     }
 
-    /////////////////////////////////////////////////
     return
     */
 
@@ -337,7 +333,7 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
                 if (next_char == '{') {
                     list_corps_else = analyse_corps(buffer, NULL, global_sym_table, local_table);
                 } else {
-                    printf("ERROR %d : %d : '{' expected \n", buf_getline(), buf_getcol());
+                    print_error("'{' expected after a 'else'");
                     exit(1);
                 }
             }
@@ -395,17 +391,17 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
                 ast_left = ast_new_fncall(func_name, list_args);
 
                 free(func_name);
-                crash_if_exist(global_sym_table, ast_left);
+                crash_if_exist(&global_sym_table, ast_left);
             } else {
                 // C'est une variable
                 char *var_name = lexer_getalphanum(buffer);
 
                 ast_left = ast_new_variable(var_name, VOID);
-                ast_left->var.type = get_type(local_table, ast_left);
+                ast_left->var.type = get_type(&local_table, ast_left);
 
                 free(var_name);
                 if (ast_left->var.type == INVALID_TYPE) {
-                    printf("ERROR %d : %d : Variable %s not declared\n", buf_getline(), buf_getcol(), var_name);
+                    print_error("Variable %s not declared", var_name);
                     exit(1);
                 }
             }
@@ -422,7 +418,7 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
                 list_result = ast_list_add(&list_instructions, ast_assignment);
                 
             } else {
-                printf("ERROR %d : %d : Char ';' or '=' expected", buf_getline(), buf_getcol());
+                print_error("Char ';' or '=' expected");
                 exit(1);
             }
         }
@@ -468,14 +464,14 @@ ast_t *analyse_condition(buffer_t *buffer, sym_table_t *global_sym_table, sym_ta
     */
     char ch = buf_getchar_after_blank(buffer);
     if (ch != '(') {
-        printf("ERROR %d : %d : Expected '(' at the beginning of condition\n", buf_getline(), buf_getcol());
+        print_error("Expected '(' at the beginning of condition");
         exit(1);
     }
 
     ast_t *ast_left = parse_expression(buffer, CONDITION, global_sym_table, local_table);
     char *op = lexer_getop(buffer);
     if ((op == NULL) || !is_conditional_operator(op)) {
-        printf("ERROR %d : %d : Expected a conditional operator\n", buf_getline(), buf_getcol());
+        print_error("Expected a conditional operator");
         exit(1);
     }
 
@@ -485,7 +481,7 @@ ast_t *analyse_condition(buffer_t *buffer, sym_table_t *global_sym_table, sym_ta
 
     ch = buf_getchar(buffer);
     if (ch != ')') {
-        printf("ERROR %d : %d : Expected ')' at the end of condition\n", buf_getline(), buf_getcol());
+        print_error("Expected ')' at the end of condition");
         exit(1);
     }
     return condition;
@@ -563,10 +559,10 @@ ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global
         } else {
             //c'est une variable
             char *var_name = lexer_getalphanum(buffer);
-            var_type_e var_type = get_type(local_table, ast_new_variable(var_name, VOID));
+            var_type_e var_type = get_type(&local_table, ast_new_variable(var_name, VOID));
 
             if (var_type == INVALID_TYPE){
-                printf("ERROR %d : %d : Variable %s not declared\n", buf_getline(), buf_getcol(), var_name);
+                print_error("Variable %s not declared", var_name);
                 exit(1);
             }
 
@@ -602,7 +598,7 @@ ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global
         buf_rollback(buffer, 1);
         char *operator = lexer_getop(buffer);
         if (operator == NULL) {
-            printf("ERROR %d : %d : Operator expected\n", buf_getline(), buf_getcol());
+            print_error("Operator expected");
             exit(1);
         }
         ast_t *ast_right = parse_expression(buffer, context, global_sym_table, local_table);
@@ -664,7 +660,7 @@ ast_list_t* analyse_args(buffer_t *buffer, ast_list_t *list_args, sym_table_t *g
             if (ch == ')') {
                 return NULL;
             } else {
-                printf("ERROR %d : %d : Unexpected char in argument(s)\n", buf_getline(), buf_getcol());
+                print_error("Unexpected char in argument(s)");
                 exit(1);
             }
         } else {
@@ -673,7 +669,7 @@ ast_list_t* analyse_args(buffer_t *buffer, ast_list_t *list_args, sym_table_t *g
             char *next= lexer_getalphanum(buffer);
             var_type_e type = type_str_to_enum(next);
             if (type == INVALID_TYPE) {
-                printf("ERROR %d : %d : Invalid type for argument\n", buf_getline(), buf_getcol());
+                print_error("Invalid type for argument");
                 exit(1);
             }
         arg_node = ast_new_variable(var_name, type);
@@ -683,7 +679,7 @@ ast_list_t* analyse_args(buffer_t *buffer, ast_list_t *list_args, sym_table_t *g
         }
     } else {
         //number donc crash :(
-        printf("ERROR %d : %d : Number in function arguments\n", buf_getline(), buf_getcol());
+        print_error("Number in function arguments");
         exit(1);
     }
 
@@ -694,7 +690,7 @@ ast_list_t* analyse_args(buffer_t *buffer, ast_list_t *list_args, sym_table_t *g
     } else if (ch == ')'){
         return list_args;
     } else {
-        printf("ERROR %d : %d : ',' or ')' expected after an argument\n", buf_getline(), buf_getcol());
+        print_error("',' or ')' expected after an argument");
         exit(1);
     }
 
@@ -723,18 +719,18 @@ void check_valid_name(buffer_t *buffer){
     */
     char* word = lexer_getop_rollback(buffer);
     if (word != NULL) {
-        printf("ERROR %d : %d : Fonctions and Variables must begin with an alphanumeric char !\n", buf_getline(), buf_getcol());
+        print_error("Fonctions and Variables must begin with an alphanumeric char !");
         exit(1);
     }
     long* num = lexer_getnumber_rollback(buffer);
     if (num != NULL) {
-        printf("ERROR %d : %d: Fonctions and Variables must begin with an alphanumeric char !\n", buf_getline(), buf_getcol());
+        print_error("Fonctions and Variables must begin with an alphanumeric char !");
         exit(1);
     }
 
     word = lexer_getalphanum_rollback(buffer);
     if (word == NULL) {
-        printf("ERROR %d : %d: Fonctions and Variables must begin with an alphanumeric char !\n", buf_getline(), buf_getcol());
+        print_error("Fonctions and Variables must begin with an alphanumeric char !");
         exit(1);
     }
    
@@ -813,8 +809,4 @@ ast_binary_e op_str_to_enum(char* op){
     if (strcmp(op, "/") == 0) return DIVIDE;
 }
 
-void print_trace(char * str) {
-  if (TRACE) {
-    printf("TRACE %d:%d : %s\n", buf_getline(), buf_getcol(), str);
-  }
-}
+

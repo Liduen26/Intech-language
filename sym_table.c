@@ -15,25 +15,44 @@ sym_table_t *sym_list_new_node (ast_t *elem){
     return node_list;
 }
 
-sym_table_t *sym_list_add (sym_table_t **list_head, ast_t *node){
-    crash_if_exist(*list_head, node);
+void sym_list_add (sym_table_t **list_head, ast_t *node) {
+    sym_table_t* new_node = sym_list_new_node(node);
+    sym_table_t *last = *list_head;
 
-    sym_table_t *new_node = sym_list_new_node(node);
+    // Si la liste est vide, le nouveau noeud devient le premier noeud
+    if (*list_head == NULL) {
+        *list_head = new_node;
+        return;
+    } else {
+        crash_if_exist(list_head, node);
+    }
 
-    if (new_node != NULL) {
-        printf("name : %s", node->var.name);
-        if (*list_head == NULL || "\0") {
-            *list_head = new_node;
-        } else {
-            sym_table_t *current = *list_head;
-            while (current->next != NULL) {
-                current = current->next;
-            }
-            current->next = new_node;
+    // Sinon, on parcourt la liste jusqu'au dernier noeud
+    while (last->next != NULL) {
+        last = last->next;
+    }
+
+    // On change le dernier noeud pour qu'il pointe vers le nouveau noeud
+    last->next = new_node;
+}
+
+void crash_if_exist(sym_table_t **list_head, ast_t *node) {
+    sym_table_t *last = *list_head;
+    if (node == NULL) {
+        exit(1);
+    }
+
+    while (last->next != NULL) {
+        // printf("%s\n", current->node->function.name);
+        if (last->node->type != node->type) {
+            continue;
+        }
+
+        if (last->node->function.name == node->function.name) {
+            printf("%s already exist !", last->node->function.name);
+            exit(1);
         }
     }
-    return new_node;
-
 }
 
 void print_table(sym_table_t *node_list) {
@@ -54,8 +73,8 @@ void print_table(sym_table_t *node_list) {
     }
 }
 
-var_type_e get_type(sym_table_t *list_head, ast_t *node) {
-    sym_table_t *current = list_head;
+var_type_e get_type(sym_table_t **list_head, ast_t *node) {
+    sym_table_t *current = *list_head;
     if (node == NULL) {
         exit(1);
     }
@@ -82,24 +101,4 @@ var_type_e get_type(sym_table_t *list_head, ast_t *node) {
     }
 
     return INVALID_TYPE;
-}
-
-void crash_if_exist(sym_table_t *list_head, ast_t *node) {
-    sym_table_t *current = list_head;
-    if (node == NULL) {
-        exit(1);
-    }
-    print_table(list_head);
-
-    while (current->next == NULL) {
-        printf("%s\n", current->node->function.name);
-        if (current->node->type != node->type) {
-            continue;
-        }
-
-        if (current->node->function.name == node->function.name) {
-            printf("%s already exist !", node->function.name);
-            exit(1);
-        }
-    }
 }
