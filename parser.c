@@ -326,17 +326,25 @@ ast_t analyse_condition(buffer_t *buffer, sym_table_t *global_sym_table, sym_tab
 
 //check si func ou var et agit, check binary operator et recursive 
 ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global_sym_table, sym_table_t *local_table){
+
+    char *num = lexer_getalphanum_rollback(buffer);
+    ast_t *node = NULL;
+
+    if(num == NULL){
+
+    }
     /**
     Skipblank
     lexer get_num_rollback
     Si == NULL
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         isFunc = is_function
 
         Si isFunc == true
             // C'est une fonction
             lexer get_alphanum
-            analyse_param
+            analyse_args
             // TODO Regarde la table des symboles pour vérifier qu'on a le bon nombre de params avec le bon type au bon endroit
             // TODO Parcourir les deux listes, args dans les symboles, et params pour vérifier que tout correspond
 
@@ -385,7 +393,66 @@ ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global
 }
 
 //vérifie qu'on donne des args quand on déclare une fonction sinon crash
-ast_list_t* analyse_args(buffer_t *buffer, ast_list_t list_args, sym_table_t *global_sym_table, sym_table_t *local_table) {
+ast_list_t* analyse_args(buffer_t *buffer, ast_list_t *list_args, sym_table_t *global_sym_table, sym_table_t *local_table) {
+
+    char ch = buf_getchar_after_blank(buffer);
+
+    if(ch != '('){
+        //si pas de '(', rollback 1 et return null
+        buf_rollback(buffer, 1);
+        return NULL;
+    }
+
+    buf_skipblank(buffer);
+
+    long *num = lexer_getnumber_rollback(buffer);
+    ast_t *arg_node = NULL;
+
+    if(num == NULL){
+        char *var_name = lexer_getalphanum_rollback(buffer);
+        if (var_name == NULL) {
+            ch = buf_getchar_after_blank(buffer);
+            if (ch == ')') {
+                return NULL;
+            } else {
+                printf("ERROR line %d : Unexpected char in argument(s)\n", buf_getline());
+                exit(1);
+            }
+        } else {
+            //si variable
+            buf_skipblank(buffer);
+            char *next= lexer_getalphanum(buffer);
+            var_type_e type = type_str_to_enum(next);
+            if (type == INVALID_TYPE) {
+                printf("ERROR line %d : Invalid type for argument\n", buf_getline());
+                exit(1);
+            }
+        arg_node = ast_new_variable(var_name, type);
+        sym_list_add(&local_table, arg_node);
+
+        list_args = ast_list_add(&list_args, arg_node);
+        }
+    } else {
+        //number donc crash :(
+        printf("ERROR line %d : Number in function arguments\n", buf_getline());
+        exit(1);
+    }
+
+    ch = buf_getchar_after_blank(buffer);
+    if (ch == ',')
+    {
+        analyse_args(buffer, list_args, global_sym_table, local_table);
+    } else if (ch == ')'){
+        return list_args;
+    } else {
+        printf("ERRROR line %d : ',' or ')' expected after an argument\n", buf_getline());
+        exit(1);
+    }
+
+    return list_args;
+    
+
+
     /**
     Skip blank
     get char
@@ -411,6 +478,7 @@ ast_list_t* analyse_args(buffer_t *buffer, ast_list_t list_args, sym_table_t *gl
     sinon
         add liste avec la var trouvée
 
+    ///////////////////////////////////////////////////
     Si détecte , = recursif (rappel analyse_args)
     Si détecte ) return
     return list 
@@ -439,18 +507,18 @@ void check_valid_name(buffer_t *buffer){
     */
     char* word = lexer_getop_rollback(buffer);
     if (word != NULL) {
-        printf("ERROR : Fonctions and Variables must begin with an alphanumeric char !");
+        printf("ERROR line %d : Fonctions and Variables must begin with an alphanumeric char !\n", buf_getline());
         exit(1);
     }
     long* num = lexer_getnumber_rollback(buffer);
     if (num != NULL) {
-        printf("ERROR : Fonctions and Variables must begin with an alphanumeric char !");
+        printf("ERROR line %d: Fonctions and Variables must begin with an alphanumeric char !\n", buf_getline());
         exit(1);
     }
 
     word = lexer_getalphanum_rollback(buffer);
     if (word == NULL) {
-        printf("ERROR : Fonctions and Variables must begin with an alphanumeric char !");
+        printf("ERROR line %d: Fonctions and Variables must begin with an alphanumeric char !\n", buf_getline());
         exit(1);
     }
    
