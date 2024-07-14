@@ -59,11 +59,9 @@ ast_t* analyse_function(sym_table_t *global_sym_table, buffer_t *buffer) {
 
     sym_table_t *local_table;
 
-    ast_list_t *list_param; 
-    list_param = analyse_param(buffer, list_param, local_table);
+    ast_list_t *list_param = analyse_param(buffer, NULL, local_table);
     var_type_e return_type = analyse_return(buffer);
-    ast_list_t *list_instructions;
-    list_instructions = analyse_corps(buffer, list_instructions, global_sym_table, local_table);
+    ast_list_t *list_instructions = analyse_corps(buffer, NULL, global_sym_table, local_table);
 
     ast_t *func_node = ast_new_function(func_name, return_type, list_param, list_instructions);
 
@@ -134,7 +132,7 @@ ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param, sym_table_t 
         free(param_name);
         return list_parameter;
     } else {
-        printf("ERROR : ',' or ')' expected after a parameter");
+        printf("ERROR line %d : ',' or ')' expected after a parameter\n", buf_getline());
         exit(1);
     }
 
@@ -224,13 +222,13 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
                 
         Sinon 
             check_valid_name
-    /////////////////////////////////////////////////
             isFunc = is_function
 
             Si isFunc == true
                 // C'est une fonction
                 lexer get_alphanum
                 analyse_param
+    /////////////////////////////////////////////////
                 // TODO Regarde la table des symboles pour vérifier qu'on a le bon nombre de params avec le bon type au bon endroit
 
                 check_already_exist dans la table globale
@@ -266,7 +264,7 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
     return
     */
 
-    char *first_word = lexer_getalphanum(buffer);
+    char *first_word = lexer_getalphanum_rollback(buffer);
     ast_t *ast_result;
 
     if (strcmp(first_word, "if") == 0) {
@@ -280,11 +278,12 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
 
     } else {
         // le mot n'est pas un mot-clé logique, c'est donc var ou un appel de fonction
-        var_type_e type = type_str_to_enum(first_word);
-        if (type != INVALID_TYPE) {
+        char *type = lexer_getalphanum(buffer);
+        var_type_e type_e = type_str_to_enum(type);
+        if (type_e != INVALID_TYPE) {
             // Type, c'est donc une déclaration de var
             char *var_name = lexer_getalphanum(buffer);
-            ast_result = ast_new_variable(var_name, type);
+            ast_result = ast_new_variable(var_name, type_e);
 
             sym_list_add(&local_table, ast_result);
         } else {
@@ -293,7 +292,17 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
             // Crash si c'est pas qqchose de valide
             check_valid_name(buffer);
 
+            if (is_function(buffer)) {
+                // C'est une fonction
+                char *func_name = lexer_getalphanum(buffer);
+                ast_list_t *list_args = analyse_args(buffer, NULL, global_sym_table, local_table);
 
+                // TODO Regarde la table des symboles pour vérifier qu'on a le bon nombre de params avec le bon type au bon endroit
+
+                ast_result = ast_new_fncall(func_name, list_args);
+                check_already_exist(global_sym_table, ast_result);
+            }
+            
         }
         
     }
