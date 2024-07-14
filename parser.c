@@ -100,7 +100,19 @@ ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param, sym_table_t 
     return list 
      */
 
-    buf_getchar_after_blank(buffer);
+    char first_char = buf_getchar_after_blank(buffer);
+    bool first = false;
+    if (first_char == ')') {
+        first = true;
+    }
+
+    char* type = lexer_getalphanum(buffer);
+    if (/* condition */)
+    {
+        /* code */
+    }
+    
+    
 }
 
 //analyse le return d'une déclaration de fonction
@@ -372,18 +384,18 @@ void check_valid_name(buffer_t *buffer){
     */
     char* word = lexer_getop_rollback(buffer);
     if (word != NULL) {
-        printf("Les variables et les fonctions doivent commencer par un caractère alphanumérique !");
+        printf("ERROR : Fonctions and Variables must begin with an alphanumeric char !");
         exit(1);
     }
     word = lexer_getop_rollback(buffer);
     if (word != NULL) {
-        printf("Les variables et les fonctions doivent commencer par un caractère alphanumérique !");
+        printf("ERROR : Fonctions and Variables must begin with an alphanumeric char !");
         exit(1);
     }
 
     word = lexer_getnumber_rollback(buffer);
     if (word == NULL) {
-        printf("Les variables et les fonctions doivent commencer par un caractère alphanumérique !");
+        printf("ERROR : Fonctions and Variables must begin with an alphanumeric char !");
         exit(1);
     }
    
@@ -435,4 +447,15 @@ bool is_conditional_operator(const char *op) {
         }
     }
     return false;
+}
+
+var_type_e type_str_to_enum(char* type_str) {
+    if (strcmp(type_str, "int") == 0) {
+        return INT;
+    } else if (strcmp(type_str, "void") == 0) {
+        return VOID;
+    } else {
+        printf("ERROR : Incorrect type name !");
+        exit(1);
+    }
 }
