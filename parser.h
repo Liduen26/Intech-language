@@ -7,7 +7,8 @@
 
 typedef enum {
     INSTRUCTION,
-    ARGUMENT
+    ARGUMENT,
+    CONDITION
 } context_e;
 
 ast_list_t* parser(buffer_t *buffer);
