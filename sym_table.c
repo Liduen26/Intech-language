@@ -53,7 +53,7 @@ void print_table(sym_table_t *node_list) {
     }
 }
 
-var_type_e *check_already_exist(sym_table_t *list_head, ast_t *node) {
+var_type_e *get_type(sym_table_t *list_head, ast_t *node) {
     sym_table_t *current = list_head;
     if (node == NULL) {
         exit(1);

@@ -228,7 +228,6 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
                 // C'est une fonction
                 lexer get_alphanum
                 analyse_param
-    /////////////////////////////////////////////////
                 // TODO Regarde la table des symboles pour vérifier qu'on a le bon nombre de params avec le bon type au bon endroit
 
                 check_already_exist dans la table globale
@@ -240,6 +239,7 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
                 check_already_exist dans la table locale et récup le type de la var
 
                 crée ast de la variable
+    /////////////////////////////////////////////////
 
         Skipblank
         Lire next char
@@ -300,7 +300,19 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
                 // TODO Regarde la table des symboles pour vérifier qu'on a le bon nombre de params avec le bon type au bon endroit
 
                 ast_result = ast_new_fncall(func_name, list_args);
-                check_already_exist(global_sym_table, ast_result);
+                crash_if_exist(global_sym_table, ast_result);
+            } else {
+                // C'est une variable
+                char *var_name = lexer_getalphanum(buffer);
+
+                ast_result = ast_new_variable(var_name, NULL);
+                ast_result->var.type = get_type(local_table, ast_result);
+
+                if (ast_result->var.type == NULL) {
+                    printf("ERROR line %d : Call of an undefined variable");
+                    exit(1);
+                }
+                
             }
             
         }
