@@ -30,8 +30,6 @@ typedef enum {
     NOT_EQUAL,
     TIMES,
     DIVIDE,
-    AND,
-    OR
 } ast_binary_e;
 
 typedef enum ast_unary_e {

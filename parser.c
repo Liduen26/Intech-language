@@ -353,12 +353,67 @@ ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global
 
     if(num == NULL){
 
+        if (is_function(buffer))
+        {
+            //c'est une fonction
+            char *func_name = lexer_getalphanum(buffer);
+            ast_list_t *args = analyse_args(buffer, NULL, global_sym_table, local_table);
+            node = ast_new_fncall(func_name, args);
+        } else {
+            //c'est une variable
+            char *var_name = lexer_getalphanum(buffer);
+            var_type_e *var_type = get_type(local_table, ast_new_variable(var_name, NULL));
+
+            if (var_type == NULL){
+                printf("ERRROR line %d : Variable %s nor declared\n", buf_getline(), var_name);
+                exit(1);
+            }
+
+            node = ast_new_variable(var_name, *var_type);
+
+        }
+        
+    } else {
+        //c'est un nombre
+        long value = strtol(num, NULL, 50);
+        node = ast_new_integer(value);
     }
+
+    char next_char = buf_getchar_after_blank(buffer);
+
+    //check le char after blank et return + rollback
+    if ((next_char == ';' && context == INSTRUCTION) || (next_char == ',' && context == ARGUMENT) || 
+    (is_conditional_operator(&next_char) && context == CONDITION) || (next_char == ')' && context == ARGUMENT)) {
+        buf_rollback(buffer, 1);
+        return node;
+    }
+
+    //check char after blank et return
+    if (next_char == ')') {
+        buf_getchar_after_blank(buffer);
+        if (buf_getchar(buffer) == ';') {
+            return node;
+        }
+    }
+
+    //get operator
+    if (next_char != ';') {
+        buf_rollback(buffer, 1);
+        char *operator = lexer_getop(buffer);
+        if (operator == NULL) {
+            printf("ERROR line %d : Operator expected\n", buf_getline());
+            exit(1);
+        }
+        ast_t *ast_right = parse_expression(buffer, context, global_sym_table, local_table);
+        node = ast_new_binary(op_str_to_enum(operator), node, ast_right);
+
+    }
+    return node;
+
     /**
     Skipblank
     lexer get_num_rollback
     Si == NULL
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         isFunc = is_function
 
@@ -602,4 +657,16 @@ var_type_e type_str_to_enum(char* type_str) {
     } else {
         return INVALID_TYPE;
     }
+}
+
+ast_binary_e op_str_to_enum(char* op){
+    if (strcmp(op, "+") == 0) return PLUS;
+    if (strcmp(op, "-") == 0) return MINUS;
+    if (strcmp(op, ">=") == 0) return SUP_OR_EQUAL;
+    if (strcmp(op, ">") == 0) return SUP;
+    if (strcmp(op, "<") == 0) return INF;
+    if (strcmp(op, "<=") == 0) return INF_OR_EQUAL;
+    if (strcmp(op, "!=") == 0) return NOT_EQUAL;
+    if (strcmp(op, "*") == 0) return TIMES;
+    if (strcmp(op, "/") == 0) return DIVIDE;
 }

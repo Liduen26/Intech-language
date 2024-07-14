@@ -23,6 +23,8 @@ ast_list_t* analyse_args(buffer_t *buffer, ast_list_t *list_args, sym_table_t *g
 void check_valid_name(buffer_t *buffer);
 bool is_function(buffer_t *buffer);
 bool is_conditional_operator(const char *op);
+
 var_type_e type_str_to_enum(char* type_str);
+ast_binary_e op_str_to_enum(char* op);
 
 #endif // PARSER_H
