@@ -41,7 +41,8 @@ typedef enum ast_unary_e {
 
 typedef enum {
     INT,
-    VOID
+    VOID,
+    INVALID_TYPE
 } var_type_e;
 
 typedef struct ast_t {

@@ -104,7 +104,7 @@ ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param, sym_table_t 
         exit(1);
     }
     var_type_e type_e = type_str_to_enum(type);
-    if (type_e == NULL) {
+    if (type_e == INVALID_TYPE) {
         printf("ERROR : Incorrect type name !");
         exit(1);
     }
@@ -116,12 +116,12 @@ ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param, sym_table_t 
         exit(1);
     }
 
-    ast_t *ast_var = ast_new_variable(param_name, type);
+    ast_t *ast_var = ast_new_variable(param_name, type_e);
     
     // Ajoute a la table des symboles et crash si elle est déjà dedans
-    sym_list_add(local_table, ast_var);
+    sym_list_add(&local_table, ast_var);
     
-    ast_list_t *list_parameter = ast_list_add(list_param, ast_var);
+    ast_list_t *list_parameter = ast_list_add(&list_param, ast_var);
 
     // Regarde le prochain char pour savoir si c'est une "," ou pas
     char next_char = buf_getchar_after_blank(buffer);
@@ -158,7 +158,7 @@ var_type_e analyse_return(buffer_t *buffer) {
 }
 
 //analyse les instruction du début jusqu'a la fin d'une fonction
-ast_t* analyse_corps(buffer_t *buffer, ast_list_t *list_lines, sym_table_t *global_sym_table, sym_table_t *local_table) {
+ast_list_t* analyse_corps(buffer_t *buffer, ast_list_t *list_lines, sym_table_t *global_sym_table, sym_table_t *local_table) {
     /**
     Skip blank
     getchar
@@ -432,19 +432,20 @@ void check_valid_name(buffer_t *buffer){
         printf("ERROR : Fonctions and Variables must begin with an alphanumeric char !");
         exit(1);
     }
-    word = lexer_getop_rollback(buffer);
-    if (word != NULL) {
+    long* num = lexer_getnumber_rollback(buffer);
+    if (num != NULL) {
         printf("ERROR : Fonctions and Variables must begin with an alphanumeric char !");
         exit(1);
     }
 
-    word = lexer_getnumber_rollback(buffer);
+    word = lexer_getalphanum_rollback(buffer);
     if (word == NULL) {
         printf("ERROR : Fonctions and Variables must begin with an alphanumeric char !");
         exit(1);
     }
    
     free(word);
+    free(num);
 }
 
 //renvoie true si c'est une fonction et false si non
@@ -470,7 +471,7 @@ bool is_function(buffer_t *buffer) {
         return false;
     }
 
-    size_t name_length = strlen(buffer);
+    size_t name_length = strlen(name);
     buf_getchar_after_blank(buffer);
     char next_char = buf_getchar(buffer);
     buf_rollback(buffer, name_length + 1);
@@ -500,6 +501,6 @@ var_type_e type_str_to_enum(char* type_str) {
     } else if (strcmp(type_str, "void") == 0) {
         return VOID;
     } else {
-        return NULL;
+        return INVALID_TYPE;
     }
 }
