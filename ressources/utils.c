@@ -58,7 +58,7 @@ void print_error(const char *format, ...) {
     va_end(args);
 
     // Affichage de la trace si c'est actif
-    printf(COLOR_RED "ERROR %d:%d : ", buf_getline(), buf_getcol());
+    printf(COLOR_RED "\n== ERROR %d:%d : ", buf_getline(), buf_getcol());
     printf("%s\n" COLOR_DEFAULT, buf);
 }
 

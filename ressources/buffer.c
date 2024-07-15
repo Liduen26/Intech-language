@@ -198,7 +198,7 @@ void buf_rollback (buffer_t *buffer, size_t n)
   }
   buf_move_it_bw(buffer, n);
   buffer->avail += n;
-  col--;
+  col -= n;
 }
 
 void buf_rollback_and_unlock (buffer_t *buffer, size_t n)

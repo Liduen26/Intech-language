@@ -12,8 +12,7 @@ ast_list_t* parser(buffer_t *buffer) {
     ast_list_t *func_list;
     sym_table_t *global_sym_table;
 
-    char * test = "c'est un test";
-    print_trace("Parser start %s", test);
+    print_trace("Parser start");
     
     while (!buf_eof_strict(buffer))
     {
@@ -604,7 +603,7 @@ ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global
     printf("%c", next_char);
 
     //check le char after blank et return + rollback
-    if ((next_char == ';'/* && context == INSTRUCTION*/) 
+    if ((next_char == ';' && context == INSTRUCTION) 
         || (next_char == ',' && context == ARGUMENT) 
         || (is_conditional_operator(&next_char) && context == CONDITION) 
         || (next_char == ')' && context == ARGUMENT)) {
@@ -640,7 +639,7 @@ ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global
         node = ast_new_binary(op_str_to_enum(operator), node, ast_right);
     }
 
-    printf("fin");
+    print_warn("fin parse");
     buf_unlock(buffer);
     return node;
 }

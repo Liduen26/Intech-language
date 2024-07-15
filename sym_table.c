@@ -4,7 +4,7 @@
 
 #include "ast.h"
 #include "sym_table.h"
-
+#include "ressources/utils.h"
 
 sym_table_t *sym_list_new_node (ast_t *elem){
     sym_table_t *node_list = malloc(sizeof(sym_table_t));
@@ -80,7 +80,7 @@ var_type_e sym_get_type(sym_table_t **list_head, ast_t *node) {
         exit(1);
     }
 
-    do {
+    while (last != NULL) {
         switch (last->node->type)
         {
         case AST_FUNCTION:
@@ -99,7 +99,9 @@ var_type_e sym_get_type(sym_table_t **list_head, ast_t *node) {
             continue;
             break;
         }
-    } while (last->next != NULL);
+
+        last = last->next;
+    } 
 
     return INVALID_TYPE;
 }
