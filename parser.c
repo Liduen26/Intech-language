@@ -9,28 +9,22 @@
 #include "sym_table.h"
 
 ast_list_t* parser(buffer_t *buffer) {
-    ast_list_t *func_list;
-    sym_table_t *global_sym_table;
+    ast_list_t *func_list = NULL;
+    sym_table_t *global_sym_table = NULL;
 
     print_trace("Parser start");
     
-    while (!buf_eof_strict(buffer))
+    while (!buf_eof(buffer))
     {
         char *first_word = lexer_getalphanum(buffer);
         print_trace("Lecture mot cle : '%s'", first_word);
         if (first_word != NULL && strcmp(first_word, "function") == 0) {
 
             ast_t *function = analyse_function(global_sym_table, buffer);   
+            print_trace("Fin d'une fonction");
 
-            if (func_list->node == NULL){
-                // Si c'est null, c'est la première, donc new node
-                ast_list_new_node(function);
-                
-            } else {
-                // Pas null, add node
-                ast_list_add(&func_list, function);
-            }
-            
+            ast_list_add(&func_list, function);
+            print_warn("fonction ajoutee ");
             
         } else {
             print_trace("Ce n'est pas une fonction");
@@ -203,20 +197,21 @@ ast_list_t* analyse_corps(buffer_t *buffer, ast_list_t *list_lines, sym_table_t 
      */
     char ch = buf_getchar_after_blank(buffer);
     if (ch != '{') {
-        print_error("Expected '{' at the beginning of body");
+        print_error("Expected '{' at the beginning of body, read '%c'", ch);
         exit(1);
     }
     buf_skipblank(buffer);
 
     list_lines = analyse_instruction(buffer, NULL, global_sym_table, local_table);
-    
-    printf("Buffer apres analyse instruction : \n");
-    buf_print(buffer);
 
+    print_trace("Corps termine");
+    
+    ch = buf_getchar_after_blank(buffer);
     if (ch != '}') {
-        print_error("Expected '}' at the end of body");
+        print_error("Expected '}' at the end of body, read '%c'", ch);
         exit(1);
     }
+    print_trace("Lecture du char '%c'", ch);
 
     ast_t *comp_stmt = ast_new_comp_stmt(list_lines);
     return ast_list_new_node(comp_stmt);
@@ -311,9 +306,8 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
 
     return
     */
-
     char *first_word = lexer_getalphanum_rollback(buffer);
-    
+
     ast_list_t *list_result;
     ast_t *ast_left;
     char next_char;
@@ -327,7 +321,7 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
         ast_list_t *list_corps_else;
 
         char *next_word = lexer_getalphanum_rollback(buffer);
-        if (strcmp(next_word, "else") == 0) {
+        if (next_word != NULL && (strcmp(next_word, "else") == 0)) {
             // y a un else
             char *ch = lexer_getalphanum(buffer);
             print_trace("Lecture du mot cle logique : %s", ch);
@@ -349,6 +343,7 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
                 }
             }
         }
+        print_warn("fin else");
         
         ast_t *ast_valid = ast_new_comp_stmt(list_corps_if);
         ast_t *ast_invalid = ast_new_comp_stmt(list_corps_else);
@@ -490,12 +485,16 @@ ast_t *analyse_condition(buffer_t *buffer, sym_table_t *global_sym_table, sym_ta
     }
 
     ast_t *ast_left = parse_expression(buffer, CONDITION, global_sym_table, local_table);
-    char *op = lexer_getop(buffer);
-    if ((op == NULL) || !is_conditional_operator(buffer, *op)) {
+    buf_lock(buffer);
+    char next_char = buf_getchar_after_blank(buffer);
+    if (!is_conditional_operator(buffer, next_char)) {
         print_error("Expected a conditional operator");
         exit(1);
     }
+    buf_rollback(buffer, 1);
+    buf_unlock(buffer);
 
+    char *op = lexer_getop(buffer);
     ast_t *ast_right = parse_expression(buffer, CONDITION, global_sym_table, local_table);
     ast_t *condition = ast_new_binary(op_str_to_enum(op), ast_left, ast_right);
     free(op);
@@ -609,6 +608,7 @@ ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global
         || (next_char == ')' && context == ARGUMENT)) {
 
         print_trace("Lecture du char : %c", next_char);
+        buf_unlock(buffer);
         //ici le rollback empeche le passage a la ligne d'après je commente donc la ligne
         //buf_rollback(buffer, 1);
         return node;
@@ -616,6 +616,7 @@ ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global
     if (is_conditional_operator(buffer, next_char) && context == CONDITION) {
         buf_rollback(buffer, 1);
         buf_unlock(buffer);
+        print_trace("Lecture du char : %c", next_char);
         return node;
 
     }
@@ -630,6 +631,7 @@ ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global
         }
     } else if  (next_char == ')' && context == CONDITION){
         buf_rollback(buffer, 1);
+        buf_unlock(buffer);
         
         return node;
     }

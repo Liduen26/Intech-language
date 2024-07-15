@@ -43,7 +43,8 @@ void crash_if_exist(sym_table_t **list_head, ast_t *node) {
         exit(1);
     }
 
-    while (last->next != NULL) {
+
+    while (last != NULL) {
         // printf("%s\n", current->node->function.name);
         if (last->node->type != node->type) {
             continue;
@@ -53,6 +54,7 @@ void crash_if_exist(sym_table_t **list_head, ast_t *node) {
             printf("%s already exist !", last->node->function.name);
             exit(1);
         }
+        last = last->next;
     }
 }
 

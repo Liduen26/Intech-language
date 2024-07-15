@@ -4,7 +4,7 @@ function main (int var1, int var2): void {
     iii = 1 + main(salut);
 
     if (1 < 2) {
-        i = 3;
+        int i = 3;
     }
 }
 
