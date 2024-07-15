@@ -683,10 +683,10 @@ ast_list_t* analyse_args(buffer_t *buffer, ast_list_t *list_args, sym_table_t *g
     if(ch != '('){
         //si pas de '(', rollback 1 et return null
         buf_rollback(buffer, 1);
-        buf_unlock(buffer);
 
         return NULL;
     }
+    buf_unlock(buffer);
 
     buf_skipblank(buffer);
 
@@ -706,16 +706,16 @@ ast_list_t* analyse_args(buffer_t *buffer, ast_list_t *list_args, sym_table_t *g
         } else {
             //si variable
             buf_skipblank(buffer);
-            char *next= lexer_getalphanum(buffer);
-            var_type_e type = type_str_to_enum(next);
-            if (type == INVALID_TYPE) {
-                print_error("Invalid type for argument");
+            char *var_name = lexer_getalphanum(buffer);
+            var_type_e var_type = sym_get_type(&local_table, ast_new_variable(var_name, VOID));
+
+            if (var_type == INVALID_TYPE){
+                print_error("Variable %s not declared", var_name);
                 exit(1);
             }
-        arg_node = ast_new_variable(var_name, type);
-        sym_list_add(&local_table, arg_node);
 
-        list_args = ast_list_add(&list_args, arg_node);
+            arg_node = ast_new_variable(var_name, var_type);
+            list_args = ast_list_add(&list_args, arg_node);
         }
     } else {
         //number donc crash :(

@@ -1,6 +1,7 @@
 function main (int var1, int var2): void {
     int iii = 19 + 5;
-    iii = 1 + main(4, slt);
+    int salut;
+    iii = 1 + main(salut);
 
     if (1 < 2){
         i++;
