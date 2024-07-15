@@ -9,10 +9,8 @@ char* lexer_getalphanum(buffer_t *buffer) {
     buf_skipblank(buffer);
     size_t length = 0;
     bool was_locked = buffer->islocked;
-
     if (!was_locked) {
         buf_lock(buffer);
-        was_locked = true;
     }
 
     char charRead = buf_getchar(buffer);
@@ -31,7 +29,7 @@ char* lexer_getalphanum(buffer_t *buffer) {
         }
         result[length] = '\0'; // char null de la fin
 
-        if (was_locked) {
+        if (!was_locked) {
             buf_unlock(buffer);
         }
         
@@ -39,7 +37,7 @@ char* lexer_getalphanum(buffer_t *buffer) {
     } else {
         // Remettre le curseur à la position initiale
         buf_rollback(buffer, 1);
-        if (was_locked) {
+        if (!was_locked) {
             buf_unlock(buffer);
         }
         
@@ -53,7 +51,6 @@ char* lexer_getalphanum_rollback(buffer_t *buffer) {
     if (string != NULL) {
         buf_rollback(buffer, strlen(string));
     }
-    
     buf_unlock(buffer);
     return string;
 }
@@ -132,8 +129,13 @@ char* lexer_getop_rollback(buffer_t *buffer) {
 
 long *lexer_getnumber(buffer_t *buffer) {
     buf_skipblank(buffer);
-    buf_lock(buffer);
     size_t length = 0;
+    bool was_locked = buffer->islocked;
+
+    if (!was_locked) {
+        buf_lock(buffer);
+    }
+
     char c = buf_getchar(buffer);
 
     if (c == '-') {
@@ -172,11 +174,16 @@ long *lexer_getnumber(buffer_t *buffer) {
         }
         *result = number;
 
-        buf_unlock(buffer);
+        if (!was_locked) {
+            buf_unlock(buffer);
+        }
         return result;
+
     } else {
         buf_rollback(buffer, 1);
-        buf_unlock(buffer);
+        if (!was_locked) {
+            buf_unlock(buffer);
+        }
         return NULL;
     }
 }

@@ -193,7 +193,7 @@ void buf_forward (buffer_t *buffer, size_t n)
 void buf_rollback (buffer_t *buffer, size_t n)
 {
   if (!buffer->islocked) {
-    print_warn("rollback wthout lock.");
+    print_warn("rollback without lock.");
     print_backtrace();
   }
   buf_move_it_bw(buffer, n);

@@ -18,7 +18,7 @@ ast_list_t* parser(buffer_t *buffer) {
     while (!buf_eof_strict(buffer))
     {
         char *first_word = lexer_getalphanum(buffer);
-        printf("first word : %s\n", first_word);
+        print_trace("Lecture mot cle : '%s'", first_word);
         if (first_word != NULL && strcmp(first_word, "function") == 0) {
 
             ast_t *function = analyse_function(global_sym_table, buffer);   
@@ -56,8 +56,9 @@ ast_t* analyse_function(sym_table_t *global_sym_table, buffer_t *buffer) {
     création de l’AST pour la fonction “main” avec les paramètres, type de retour et corps de
     fonction
      */
+
     char *func_name = lexer_getalphanum(buffer);
-    printf("Lecture nom de la fonction %s\n", func_name);
+    print_trace("Lecture nom de la fonction : '%s'", func_name);
 
     sym_table_t *local_table = NULL;
 
@@ -94,12 +95,12 @@ ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param, sym_table_t 
     return list 
      */
     // Cherche une ( en premier char
+    buf_lock(buffer);
     char first_char = buf_getchar_after_blank(buffer);
     if (first_char != '(') {
-        buf_lock(buffer);
         buf_rollback(buffer, 1);
-        buf_unlock(buffer);
     }
+    buf_unlock(buffer);
     
     // cherche un type
     char *type = lexer_getalphanum(buffer);
@@ -378,12 +379,11 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
         // le mot n'est pas un mot-clé logique, c'est donc var ou un appel de fonction
         char *type = lexer_getalphanum(buffer);
         var_type_e type_e = type_str_to_enum(type);
-        print_trace("Lecture du type de la nouvelle variable : %s", type);
 
         if (type_e != INVALID_TYPE) {
             // Type, c'est donc une déclaration de var
             char *var_name = lexer_getalphanum(buffer);
-            print_trace("Lecture du nom de la nouvelle variable : %s", var_name);
+            print_trace("Lecture de la declaration de variable : %s %s", type, var_name);
             ast_left = ast_new_variable(var_name, type_e);
 
             sym_list_add(&local_table, ast_left);
@@ -392,11 +392,13 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
             // Pas un type, c'est un appel de var ou de fonction
             
             // Crash si c'est pas qqchose de valide
+
             check_valid_name(buffer);
 
             if (is_function(buffer)) {
                 // C'est une fonction
                 char *func_name = lexer_getalphanum(buffer);
+                print_trace("Lecture du nom de la nouvelle fonction : %s", func_name);
                 ast_list_t *list_args = analyse_args(buffer, NULL, global_sym_table, local_table);
 
                 // TODO Regarde la table des symboles pour vérifier qu'on a le bon nombre de params avec le bon type au bon endroit
@@ -407,8 +409,10 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
                 crash_if_exist(&global_sym_table, ast_left);
             } else {
                 // C'est une variable
+                printf("before");
                 char *var_name = lexer_getalphanum(buffer);
-
+                printf("after");
+                print_trace("Lecture du nom de la nouvelle variable : %s", var_name);
                 ast_left = ast_new_variable(var_name, VOID);
                 ast_left->var.type = get_type(&local_table, ast_left);
 
@@ -418,20 +422,20 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
                     exit(1);
                 }
             }
-        }
 
+        }
         
         next_char = buf_getchar_after_blank(buffer);
 
 
         if (next_char == ';') {
             // Unaire
-            printf("Lecture de ';'\n");
+            print_trace("Lecture de '%c'", next_char);
             list_result = ast_list_add(&list_instructions, ast_left);
 
         } else if (next_char == '=') {
             // Assignment
-            printf("Lecture de '='\n");
+            print_trace("Lecture de '%c'", next_char);
             ast_t *ast_right = parse_expression(buffer, INSTRUCTION, global_sym_table, local_table);
             ast_t *ast_assignment = ast_new_assignment(ast_left, ast_right);
             list_result = ast_list_add(&list_instructions, ast_assignment);
@@ -444,10 +448,13 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
         free(type);
     }
         
+    //buf_print(buffer);
+    buf_lock(buffer);
     next_char = buf_getchar_after_blank(buffer);
     buf_rollback(buffer, 1);
+    buf_unlock(buffer);
 
-    if (next_char = '}') {
+    if (next_char == '}') {
         // Fin de la fonction, on return
         return list_result;
     } else {
@@ -596,7 +603,7 @@ ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global
         node = ast_new_integer(value);
         
     }
-
+    buf_lock(buffer);
     char next_char = buf_getchar_after_blank(buffer);
     //check le char after blank et return + rollback
     if ((next_char == ';' /*&& context == INSTRUCTION*/) || (next_char == ',' && context == ARGUMENT) || 
@@ -620,7 +627,7 @@ ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global
     //get operator
     if (next_char != ';') {
         buf_rollback(buffer, 1);
-
+        buf_unlock(buffer);
         char *operator = lexer_getop(buffer);
         print_trace("Lecture de l'operateur : %s", operator);
         if (operator == NULL) {
@@ -631,6 +638,7 @@ ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global
         node = ast_new_binary(op_str_to_enum(operator), node, ast_right);
 
     }
+    buf_unlock(buffer);
     return node;
 }
 
@@ -666,11 +674,14 @@ ast_list_t* analyse_args(buffer_t *buffer, ast_list_t *list_args, sym_table_t *g
     Si détecte ) return
     return list 
      */
+    buf_lock(buffer);
     char ch = buf_getchar_after_blank(buffer);
 
     if(ch != '('){
         //si pas de '(', rollback 1 et return null
         buf_rollback(buffer, 1);
+        buf_unlock(buffer);
+
         return NULL;
     }
 
@@ -778,7 +789,7 @@ bool is_function(buffer_t *buffer) {
     return false
 
      */
-    
+
     check_valid_name(buffer);
 
     //recup le nom de la fonction
@@ -787,10 +798,11 @@ bool is_function(buffer_t *buffer) {
         return false;
     }
 
+    buf_lock(buffer);
     size_t name_length = strlen(name);
-    buf_getchar_after_blank(buffer);
-    char next_char = buf_getchar(buffer);
+    char next_char = buf_getchar_after_blank(buffer);
     buf_rollback(buffer, name_length + 1);
+    buf_unlock(buffer);
 
     //check si c'est une '(' après le nom de la fonction
     if (next_char == '('){
