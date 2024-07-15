@@ -174,6 +174,8 @@ var_type_e analyse_return(buffer_t *buffer) {
     }
 
     var_type_e return_type = type_str_to_enum(return_type_str);
+    print_trace("Lecture du parametre : %s", return_type_str);
+
     if (return_type == INVALID_TYPE) {
         print_error("Invalid return type '%s'", return_type_str);
         exit(1);
@@ -206,7 +208,10 @@ ast_list_t* analyse_corps(buffer_t *buffer, ast_list_t *list_lines, sym_table_t 
     }
     buf_skipblank(buffer);
     list_lines = analyse_instruction(buffer, NULL, global_sym_table, local_table);
-    
+
+    printf("Buffer apres analyse instruction : \n");
+    buf_print(buffer);
+
     if (ch != '}') {
         print_error("Expected '}' at the end of function body");
         exit(1);
@@ -307,13 +312,15 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
     */
 
     char *first_word = lexer_getalphanum_rollback(buffer);
+    
     ast_list_t *list_result;
     ast_t *ast_left;
     char next_char;
 
     if (strcmp(first_word, "if") == 0) {
         // le mot est un if
-        lexer_getalphanum(buffer);
+        char *ch = lexer_getalphanum(buffer);
+        print_trace("Lecture du mot cle logique : %s", ch);
         ast_t *ast_operation = analyse_condition(buffer, global_sym_table, local_table);
         ast_list_t *list_corps_if = analyse_corps(buffer, NULL, global_sym_table, local_table);
         ast_list_t *list_corps_else;
@@ -321,11 +328,14 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
         char *next_word = lexer_getalphanum_rollback(buffer);
         if (strcmp(next_word, "else") == 0) {
             // y a un else
-            lexer_getalphanum(buffer);
+            char *ch = lexer_getalphanum(buffer);
+            print_trace("Lecture du mot cle logique : %s", ch);
 
             next_word = lexer_getalphanum_rollback(buffer);
             if (strcmp(next_word, "if") == 0) {
                 // else if
+                print_trace("Lecture du mot cle logique : %s", next_word);
+
                 analyse_instruction(buffer, NULL, global_sym_table, local_table);
             } else {
                 // else
@@ -368,9 +378,12 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
         // le mot n'est pas un mot-clé logique, c'est donc var ou un appel de fonction
         char *type = lexer_getalphanum(buffer);
         var_type_e type_e = type_str_to_enum(type);
+        print_trace("Lecture du type de la nouvelle variable : %s", type);
+
         if (type_e != INVALID_TYPE) {
             // Type, c'est donc une déclaration de var
             char *var_name = lexer_getalphanum(buffer);
+            print_trace("Lecture du nom de la nouvelle variable : %s", var_name);
             ast_left = ast_new_variable(var_name, type_e);
 
             sym_list_add(&local_table, ast_left);
@@ -405,22 +418,27 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
                     exit(1);
                 }
             }
-            
-            next_char = buf_getchar_after_blank(buffer);
-            if (next_char == ';') {
-                // Unaire
-                list_result = ast_list_add(&list_instructions, ast_left);
+        }
 
-            } else if (next_char == '=') {
-                // Assignment
-                ast_t *ast_right = parse_expression(buffer, INSTRUCTION, global_sym_table, local_table);
-                ast_t *ast_assignment = ast_new_assignment(ast_left, ast_right);
-                list_result = ast_list_add(&list_instructions, ast_assignment);
-                
-            } else {
-                print_error("Char ';' or '=' expected");
-                exit(1);
-            }
+        
+        next_char = buf_getchar_after_blank(buffer);
+
+
+        if (next_char == ';') {
+            // Unaire
+            printf("Lecture de ';'\n");
+            list_result = ast_list_add(&list_instructions, ast_left);
+
+        } else if (next_char == '=') {
+            // Assignment
+            printf("Lecture de '='\n");
+            ast_t *ast_right = parse_expression(buffer, INSTRUCTION, global_sym_table, local_table);
+            ast_t *ast_assignment = ast_new_assignment(ast_left, ast_right);
+            list_result = ast_list_add(&list_instructions, ast_assignment);
+            
+        } else {
+            print_error("Char ';' or '=' expected");
+            exit(1);
         }
         
         free(type);
@@ -545,7 +563,7 @@ ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global
     return node
 
     */
-    char *num = lexer_getalphanum_rollback(buffer);
+    char *num = lexer_getalphanum(buffer);
     ast_t *node = NULL;
 
     if(num == NULL){
@@ -554,6 +572,7 @@ ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global
         {
             //c'est une fonction
             char *func_name = lexer_getalphanum(buffer);
+            print_trace("Lecture de la fonction : %s", func_name);
             ast_list_t *args = analyse_args(buffer, NULL, global_sym_table, local_table);
             node = ast_new_fncall(func_name, args);
         } else {
@@ -572,16 +591,20 @@ ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global
         
     } else {
         //c'est un nombre
+        print_trace("Lecture du nombre : %s", num);
         long value = strtol(num, NULL, 50);
         node = ast_new_integer(value);
+        
     }
 
     char next_char = buf_getchar_after_blank(buffer);
-
     //check le char after blank et return + rollback
-    if ((next_char == ';' && context == INSTRUCTION) || (next_char == ',' && context == ARGUMENT) || 
+    if ((next_char == ';' /*&& context == INSTRUCTION*/) || (next_char == ',' && context == ARGUMENT) || 
     (is_conditional_operator(&next_char) && context == CONDITION) || (next_char == ')' && context == ARGUMENT)) {
-        buf_rollback(buffer, 1);
+
+        print_trace("Lecture du char : %s", &next_char);
+        //ici le rollback empeche le passage a la ligne d'après je commente donc la ligne
+        //buf_rollback(buffer, 1);
         return node;
     }
 
@@ -589,6 +612,7 @@ ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global
     if (next_char == ')') {
         buf_getchar_after_blank(buffer);
         if (buf_getchar(buffer) == ';') {
+            print_trace("Lecture du char ';' fin de ligne et creation de la node");
             return node;
         }
     }
@@ -596,7 +620,9 @@ ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global
     //get operator
     if (next_char != ';') {
         buf_rollback(buffer, 1);
+
         char *operator = lexer_getop(buffer);
+        print_trace("Lecture de l'operateur : %s", operator);
         if (operator == NULL) {
             print_error("Operator expected");
             exit(1);
