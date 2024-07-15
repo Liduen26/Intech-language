@@ -3,7 +3,7 @@ function main (int var1, int var2): void {
     int salut;
     iii = 1 + main(salut);
 
-    if (1 < 2){
+    if (1 < 2) {
         i = 3;
     }
 }

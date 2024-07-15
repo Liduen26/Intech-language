@@ -203,16 +203,18 @@ ast_list_t* analyse_corps(buffer_t *buffer, ast_list_t *list_lines, sym_table_t 
      */
     char ch = buf_getchar_after_blank(buffer);
     if (ch != '{') {
-        print_error("Expected '{' at the beginning of function body");
+        print_error("Expected '{' at the beginning of body");
         exit(1);
     }
     buf_skipblank(buffer);
-    list_lines = analyse_instruction(buffer, NULL, global_sym_table, local_table);
 
+    list_lines = analyse_instruction(buffer, NULL, global_sym_table, local_table);
+    
     printf("Buffer apres analyse instruction : \n");
+    buf_print(buffer);
 
     if (ch != '}') {
-        print_error("Expected '}' at the end of function body");
+        print_error("Expected '}' at the end of body");
         exit(1);
     }
 
@@ -489,7 +491,7 @@ ast_t *analyse_condition(buffer_t *buffer, sym_table_t *global_sym_table, sym_ta
 
     ast_t *ast_left = parse_expression(buffer, CONDITION, global_sym_table, local_table);
     char *op = lexer_getop(buffer);
-    if ((op == NULL) || !is_conditional_operator(op)) {
+    if ((op == NULL) || !is_conditional_operator(buffer, *op)) {
         print_error("Expected a conditional operator");
         exit(1);
     }
@@ -600,12 +602,10 @@ ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global
     // Lit un char pour check un ;
     buf_lock(buffer);
     char next_char = buf_getchar_after_blank(buffer);
-    printf("%c", next_char);
 
     //check le char after blank et return + rollback
     if ((next_char == ';' && context == INSTRUCTION) 
         || (next_char == ',' && context == ARGUMENT) 
-        || (is_conditional_operator(&next_char) && context == CONDITION) 
         || (next_char == ')' && context == ARGUMENT)) {
 
         print_trace("Lecture du char : %c", next_char);
@@ -613,17 +613,27 @@ ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global
         //buf_rollback(buffer, 1);
         return node;
     }
-    printf("pas grand if");
+    if (is_conditional_operator(buffer, next_char) && context == CONDITION) {
+        buf_rollback(buffer, 1);
+        buf_unlock(buffer);
+        return node;
+
+    }
+    
 
     //check char after blank et return
-    if (next_char == ')') {
+    if (next_char == ')' && context == INSTRUCTION) {
         buf_getchar_after_blank(buffer);
         if (buf_getchar(buffer) == ';') {
             print_trace("Lecture du char ';' fin de ligne et creation de la node");
             return node;
         }
+    } else if  (next_char == ')' && context == CONDITION){
+        buf_rollback(buffer, 1);
+        
+        return node;
     }
-    printf("pas )");
+
 
     //get operator
     if (next_char != ';') {
@@ -813,16 +823,19 @@ bool is_function(buffer_t *buffer) {
     return false;
 
 }
-bool is_conditional_operator(const char *op) {
-    const char *operators[] = {">=", ">", "<", "<=", "==", "!="};
-    size_t num_operators = sizeof(operators) / sizeof(operators[0]);
+bool is_conditional_operator(buffer_t *buffer, char op) {
 
-    for (size_t i = 0; i < num_operators; i++) {
-        if (strcmp(op, operators[i]) == 0) {
-            return true;
+    if (op == '<' || op == '>') {
+        return true;
+    }  else if (op == '=' || op == '!') {
+        char *next_op = lexer_getop_rollback(buffer);
+        if (next_op == NULL) {
+            return false;
         }
+        return true;
     }
     return false;
+    
 }
 
 // Renvoie l'enum de type en fonction de la var d'entrée
