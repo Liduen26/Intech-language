@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "ast.h"
 #include "sym_table.h"
@@ -73,24 +74,24 @@ void print_table(sym_table_t *node_list) {
     }
 }
 
-var_type_e get_type(sym_table_t **list_head, ast_t *node) {
-    sym_table_t *current = *list_head;
+var_type_e sym_get_type(sym_table_t **list_head, ast_t *node) {
+    sym_table_t *last = *list_head;
     if (node == NULL) {
         exit(1);
     }
 
-    while (current->next == NULL) {
-        switch (current->node->type)
+    do {
+        switch (last->node->type)
         {
         case AST_FUNCTION:
-            if (current->node->function.name == node->function.name) {
-                return current->node->function.return_type;
+            if (strcmp(last->node->function.name, node->function.name) == 0) {
+                return last->node->function.return_type;
             }
             break;
 
         case AST_VARIABLE:
-            if (current->node->var.name == node->var.name) {
-                return current->node->var.type;
+            if (strcmp(last->node->var.name, node->var.name) == 0) {
+                return last->node->var.type;
             }
             break;
 
@@ -98,7 +99,7 @@ var_type_e get_type(sym_table_t **list_head, ast_t *node) {
             continue;
             break;
         }
-    }
+    } while (last->next != NULL);
 
     return INVALID_TYPE;
 }

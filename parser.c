@@ -42,7 +42,7 @@ ast_list_t* parser(buffer_t *buffer) {
         free(first_word);
     }
     
-    printf("parser end\n");
+    print_trace("Parser end");
     return func_list;
 }
 
@@ -211,7 +211,6 @@ ast_list_t* analyse_corps(buffer_t *buffer, ast_list_t *list_lines, sym_table_t 
     list_lines = analyse_instruction(buffer, NULL, global_sym_table, local_table);
 
     printf("Buffer apres analyse instruction : \n");
-    buf_print(buffer);
 
     if (ch != '}') {
         print_error("Expected '}' at the end of function body");
@@ -377,28 +376,27 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
         list_result = ast_list_add(&list_instructions, ast_return);
     } else {
         // le mot n'est pas un mot-clé logique, c'est donc var ou un appel de fonction
-        char *type = lexer_getalphanum(buffer);
+        char *type = lexer_getalphanum_rollback(buffer);
         var_type_e type_e = type_str_to_enum(type);
 
         if (type_e != INVALID_TYPE) {
             // Type, c'est donc une déclaration de var
+            lexer_getalphanum(buffer);
             char *var_name = lexer_getalphanum(buffer);
             print_trace("Lecture de la declaration de variable : %s %s", type, var_name);
             ast_left = ast_new_variable(var_name, type_e);
-
+            
             sym_list_add(&local_table, ast_left);
-            free(var_name);
         } else {
             // Pas un type, c'est un appel de var ou de fonction
             
             // Crash si c'est pas qqchose de valide
-
             check_valid_name(buffer);
 
             if (is_function(buffer)) {
                 // C'est une fonction
                 char *func_name = lexer_getalphanum(buffer);
-                print_trace("Lecture du nom de la nouvelle fonction : %s", func_name);
+                print_trace("Lecture du nom de la fonction : %s", func_name);
                 ast_list_t *list_args = analyse_args(buffer, NULL, global_sym_table, local_table);
 
                 // TODO Regarde la table des symboles pour vérifier qu'on a le bon nombre de params avec le bon type au bon endroit
@@ -409,18 +407,16 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
                 crash_if_exist(&global_sym_table, ast_left);
             } else {
                 // C'est une variable
-                printf("before");
                 char *var_name = lexer_getalphanum(buffer);
-                printf("after");
-                print_trace("Lecture du nom de la nouvelle variable : %s", var_name);
+                print_trace("Lecture du nom de la variable : %s", var_name);
                 ast_left = ast_new_variable(var_name, VOID);
-                ast_left->var.type = get_type(&local_table, ast_left);
+                ast_left->var.type = sym_get_type(&local_table, ast_left);
 
-                free(var_name);
                 if (ast_left->var.type == INVALID_TYPE) {
                     print_error("Variable %s not declared", var_name);
                     exit(1);
                 }
+                free(var_name);
             }
 
         }
@@ -448,7 +444,6 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
         free(type);
     }
         
-    //buf_print(buffer);
     buf_lock(buffer);
     next_char = buf_getchar_after_blank(buffer);
     buf_rollback(buffer, 1);
@@ -570,10 +565,11 @@ ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global
     return node
 
     */
-    char *num = lexer_getalphanum(buffer);
+    long *num = lexer_getnumber(buffer);
     ast_t *node = NULL;
 
     if(num == NULL){
+        check_valid_name(buffer);
 
         if (is_function(buffer))
         {
@@ -585,7 +581,7 @@ ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global
         } else {
             //c'est une variable
             char *var_name = lexer_getalphanum(buffer);
-            var_type_e var_type = get_type(&local_table, ast_new_variable(var_name, VOID));
+            var_type_e var_type = sym_get_type(&local_table, ast_new_variable(var_name, VOID));
 
             if (var_type == INVALID_TYPE){
                 print_error("Variable %s not declared", var_name);
@@ -598,22 +594,27 @@ ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global
         
     } else {
         //c'est un nombre
-        print_trace("Lecture du nombre : %s", num);
-        long value = strtol(num, NULL, 50);
-        node = ast_new_integer(value);
-        
+        print_trace("Lecture du nombre : %ld", *num);
+        node = ast_new_integer(*num);
     }
+
+    // Lit un char pour check un ;
     buf_lock(buffer);
     char next_char = buf_getchar_after_blank(buffer);
-    //check le char after blank et return + rollback
-    if ((next_char == ';' /*&& context == INSTRUCTION*/) || (next_char == ',' && context == ARGUMENT) || 
-    (is_conditional_operator(&next_char) && context == CONDITION) || (next_char == ')' && context == ARGUMENT)) {
+    printf("%c", next_char);
 
-        print_trace("Lecture du char : %s", &next_char);
+    //check le char after blank et return + rollback
+    if ((next_char == ';'/* && context == INSTRUCTION*/) 
+        || (next_char == ',' && context == ARGUMENT) 
+        || (is_conditional_operator(&next_char) && context == CONDITION) 
+        || (next_char == ')' && context == ARGUMENT)) {
+
+        print_trace("Lecture du char : %c", next_char);
         //ici le rollback empeche le passage a la ligne d'après je commente donc la ligne
         //buf_rollback(buffer, 1);
         return node;
     }
+    printf("pas grand if");
 
     //check char after blank et return
     if (next_char == ')') {
@@ -623,6 +624,7 @@ ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global
             return node;
         }
     }
+    printf("pas )");
 
     //get operator
     if (next_char != ';') {
@@ -636,8 +638,9 @@ ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global
         }
         ast_t *ast_right = parse_expression(buffer, context, global_sym_table, local_table);
         node = ast_new_binary(op_str_to_enum(operator), node, ast_right);
-
     }
+
+    printf("fin");
     buf_unlock(buffer);
     return node;
 }
@@ -756,12 +759,12 @@ void check_valid_name(buffer_t *buffer){
     */
     char* word = lexer_getop_rollback(buffer);
     if (word != NULL) {
-        print_error("Fonctions and Variables must begin with an alphanumeric char !");
+        print_error("Fonctions and Variables can't begin with an operator !");
         exit(1);
     }
     long* num = lexer_getnumber_rollback(buffer);
     if (num != NULL) {
-        print_error("Fonctions and Variables must begin with an alphanumeric char !");
+        print_error("Fonctions and Variables can't begin with a number !");
         exit(1);
     }
 
@@ -792,16 +795,16 @@ bool is_function(buffer_t *buffer) {
 
     check_valid_name(buffer);
 
+    buf_lock(buffer);
     //recup le nom de la fonction
     char *name = lexer_getalphanum(buffer);
     if (name == NULL){
         return false;
     }
 
-    buf_lock(buffer);
     size_t name_length = strlen(name);
     char next_char = buf_getchar_after_blank(buffer);
-    buf_rollback(buffer, name_length + 1);
+    buf_rollback(buffer, (buffer->it - buffer->lock));
     buf_unlock(buffer);
 
     //check si c'est une '(' après le nom de la fonction

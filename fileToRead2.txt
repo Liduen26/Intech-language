@@ -1,11 +1,10 @@
 function main (int var1, int var2): void {
-    int i = 1 + 5;
-    i = 1 + main(4, slt);
+    int iii = 19 + 5;
+    iii = 1 + main(4, slt);
 
     if (1 < 2){
         i++;
     }
-
 }
 
 main();
