@@ -125,17 +125,15 @@ ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param, sym_table_t 
     char next_char = buf_getchar_after_blank(buffer);
     if (next_char == ',') {
         analyse_param(buffer, list_parameter, local_table);
-        free(type);
-        free(param_name);
     } else if (next_char == ')') {
-        free(type);
-        free(param_name);
         return list_parameter;
     } else {
         print_error("',' or ')' expected after a parameter");
         exit(1);
     }
 
+    // free(type);
+    // free(param_name);
     return list_parameter;
 }
 
@@ -168,7 +166,7 @@ var_type_e analyse_return(buffer_t *buffer) {
     }
 
     var_type_e return_type = type_str_to_enum(return_type_str);
-    print_trace("Lecture du parametre : %s", return_type_str);
+    print_trace("Lecture type de retour : %s", return_type_str);
 
     if (return_type == INVALID_TYPE) {
         print_error("Invalid return type '%s'", return_type_str);

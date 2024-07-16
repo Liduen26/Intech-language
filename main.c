@@ -30,7 +30,7 @@ int main() {
         perror("Erreur opening output file");
         return 1;
     }
-    write_ast_to_file(func_list, output);
+    write_ast_to_file(output, func_list);
     fclose(output);
     printf("AST written to test.ts\n");
 

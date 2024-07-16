@@ -5,10 +5,10 @@
 #include "ast.h"
 
 // Fonction principale pour écrire l'AST dans un fichier
-void write_ast_to_file(ast_list_t *ast_list, FILE *file);
+void write_ast_to_file(FILE *file, ast_list_t *ast_list);
 
 // Fonctions pour écrire différents types de nœuds AST
-void write_function(FILE *file, ast_t *ast);
+void write_function(FILE *file, ast_t *node);
 void write_declaration(FILE *file, ast_t *ast);
 void write_assignment(FILE *file, ast_t *ast);
 void write_return(FILE *file, ast_t *ast);
@@ -17,8 +17,9 @@ void write_while(FILE *file, ast_t *ast);
 void write_expression(FILE *file, ast_t *ast);
 
 // Fonctions auxiliaires pour convertir les enums en chaînes de caractères
-const char* var_type_to_str(var_type_e type);
+// const char* var_type_to_str(var_type_e type);
 const char* op_enum_to_str(ast_binary_e op);
+const char* type_to_str(var_type_e type);
 
 #endif // WRITER_H
 

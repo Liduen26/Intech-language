@@ -13,13 +13,7 @@ case declr_var:
 #include "parser.h"
 #include "writer.h"
 
-void write_ast_to_file(ast_list_t *ast_list, const char *filename) {
-    FILE *file = fopen(filename, "w");
-    if (!file) {
-        perror("Erreur opening the file");
-        return;
-    }
-
+void write_ast_to_file(FILE *file, ast_list_t *ast_list) {
     ast_list_t *current = ast_list;
     while (current != NULL) {
         switch (current->node->type) {
@@ -54,8 +48,20 @@ void write_ast_to_file(ast_list_t *ast_list, const char *filename) {
     fclose(file);
 }
 
-void write_function(FILE *file, ast_t *ast) {
-   
+void write_function(FILE *file, ast_t *node) {
+    fprintf(file, "function %s(", node->function.name);
+    ast_list_t *param = node->function.params;
+    while (param != NULL) {
+        printf("%s", param->node->var.name);
+        fprintf(file, "%s: %s", param->node->var.name, type_to_str(param->node->var.type));
+        if (param->next != NULL) {
+            fprintf(file, ", ");
+        }
+        param = param->next;
+    }
+    fprintf(file, "): %s {\n", type_to_str(node->function.return_type));
+    // write_statements(file, node->function.stmts);
+    fprintf(file, "}\n");
 }
 
 void write_declaration(FILE *file, ast_t *ast) {
@@ -82,15 +88,22 @@ void write_expression(FILE *file, ast_t *ast) {
 
 }
 
-// Helper functions to convert enums to strings
-const char* var_type_to_str(var_type_e type) {
+// // Helper functions to convert enums to strings
+// const char* var_type_to_str(var_type_e type) {
+//     switch (type) {
+//         case INT: return "int";
+//         case VOID: return "void";
+//         default: return "ya un probleme";
+//     }
+// }
+
+const char* type_to_str(var_type_e type) {
     switch (type) {
-        case INT: return "int";
+        case INT: return "number";
         case VOID: return "void";
-        default: return "ya un probleme";
+        default: return "any";
     }
 }
-
 const char* op_enum_to_str(ast_binary_e op) {
     switch (op) {
         case PLUS: return "+";
