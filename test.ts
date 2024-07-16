@@ -1,3 +1,2 @@
-function main(params:string) : void {
-    
+function main(}¨y: number, iii: number): void {
 }

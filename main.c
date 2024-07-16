@@ -21,7 +21,12 @@ int main() {
 
     buf_init(&buffer, file);
 
+    //TEST DU PARSER
+    ast_list_t* func_list = parser(&buffer);
 
+    // Écrire l'AST dans un fichier TypeScript
+    write_ast_to_ts(func_list, "test.ts");
+    
     //TEST DU LEXER
     //lexer_test(&buffer);
 
@@ -29,9 +34,6 @@ int main() {
     // ast_list_t *prev_node_list = ast_list_new_node(ast_new_integer(2));
     // ast_list_add(&prev_node_list, ast_new_variable("ma var", INT));
     // printList(prev_node_list);
-
-    //TEST DU PARSER
-    ast_list_t* func_list = parser(&buffer);
 
     // Ferme le fichier pour éviter les erreurs
     fclose(file);

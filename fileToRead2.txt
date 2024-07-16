@@ -1,4 +1,4 @@
-function main (int var1, int var2): void {
+function main(int var, int rav): void {
     int iii = 19 + 5;
     int salut;
     iii = 1 + main(salut);
