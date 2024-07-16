@@ -5,7 +5,7 @@
 #include "lexer.h" 
 #include "ast.h"
 #include "parser.h"
-#include "writer.c"
+#include "writer.h"
 
 int main() {
     buffer_t buffer;
@@ -23,6 +23,16 @@ int main() {
 
     //TEST DU PARSER
     ast_list_t* func_list = parser(&buffer);
+
+    //Ecriture ds le fichier
+    FILE *output = fopen("test.ts", "w");
+    if (output == NULL) {
+        perror("Erreur opening output file");
+        return 1;
+    }
+    write_ast_to_file(func_list, output);
+    fclose(output);
+    printf("AST written to test.ts\n");
 
     //TEST DU LEXER
     //lexer_test(&buffer);
