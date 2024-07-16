@@ -78,8 +78,8 @@ typedef struct ast_t {
             struct ast_t *rvalue;
         } assignment;
         struct {
-            struct ast_t *lvalue;
-            struct ast_t *rvalue;
+            var_type_e type;
+            char *name;
         } declaration;
         struct {
             struct ast_t *condition;
@@ -110,13 +110,13 @@ ast_t *ast_new_fncall (char *name, ast_list_t *args);
 ast_t *ast_new_function (char *name, var_type_e return_type, ast_list_t *params, ast_list_t *stmts);
 ast_t *ast_new_comp_stmt (ast_list_t *stmts);
 ast_t *ast_new_assignment (ast_t *lvalue, ast_t *rvalue);
-ast_t *ast_new_declaration (ast_t *lvalue, ast_t *rvalue);
+ast_t *ast_new_declaration (var_type_e type, char *name);
 ast_t *ast_new_condition (ast_t *operation, ast_t *valid, ast_t *invalid);
 ast_t *ast_new_loop (ast_t *condition, ast_t *stmt);
 ast_t *ast_new_return (ast_t *expr);
 
 ast_list_t *ast_list_new_node (ast_t *elem);
-ast_list_t *ast_list_add (ast_list_t **prev_node_list, ast_t *elem);
+void *ast_list_add (ast_list_t **prev_node_list, ast_t *node);
 
 void printList(ast_list_t *node_list);
 

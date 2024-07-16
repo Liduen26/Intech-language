@@ -25,14 +25,15 @@ ast_list_t* parser(buffer_t *buffer) {
 
             ast_list_add(&func_list, function);
             print_warn("fonction ajoutee ");
-            
+            printList(function->function.stmts);
+            printList(func_list->node->function.stmts);
         } else {
             print_trace("Ce n'est pas une fonction");
-            free(first_word);
+            // free(first_word);
             exit(1);
         }
         
-        free(first_word);
+        // free(first_word);
     }
     
     print_trace("Parser end");
@@ -55,9 +56,12 @@ ast_t* analyse_function(sym_table_t *global_sym_table, buffer_t *buffer) {
 
     sym_table_t *local_table = NULL;
 
-    ast_list_t *list_param = analyse_param(buffer, NULL, local_table);
+    ast_list_t *list_param = NULL;
+    list_param = analyse_param(buffer, list_param, local_table);
     var_type_e return_type = analyse_return(buffer);
-    ast_list_t *list_instructions = analyse_corps(buffer, NULL, global_sym_table, local_table);
+    ast_list_t *list_instructions = NULL;
+    list_instructions = analyse_corps(buffer, list_instructions, global_sym_table, local_table);
+    printList(list_instructions);
 
     ast_t *func_node = ast_new_function(func_name, return_type, list_param, list_instructions);
 
@@ -118,15 +122,15 @@ ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param, sym_table_t 
     // Ajoute a la table des symboles et crash si elle est déjà dedans
     sym_list_add(&local_table, ast_var);
     
-    ast_list_t *list_parameter = ast_list_add(&list_param, ast_var);
-    print_trace("Lecture du parametre : %s", list_parameter->node->var.name);
+    ast_list_add(&list_param, ast_var);
+    print_trace("Lecture du parametre : %s", list_param->node->var.name);
 
     // Regarde le prochain char pour savoir si c'est une "," ou pas
     char next_char = buf_getchar_after_blank(buffer);
     if (next_char == ',') {
-        analyse_param(buffer, list_parameter, local_table);
+        analyse_param(buffer, list_param, local_table);
     } else if (next_char == ')') {
-        return list_parameter;
+        return list_param;
     } else {
         print_error("',' or ')' expected after a parameter");
         exit(1);
@@ -134,7 +138,7 @@ ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param, sym_table_t 
 
     // free(type);
     // free(param_name);
-    return list_parameter;
+    return list_param;
 }
 
 //analyse le return d'une déclaration de fonction
@@ -161,7 +165,7 @@ var_type_e analyse_return(buffer_t *buffer) {
     char *return_type_str = lexer_getalphanum(buffer);
     if (return_type_str == NULL){
         print_error("Expected return type after ':'");
-        free(return_type_str);
+        // free(return_type_str);
         exit(1);
     }
 
@@ -173,7 +177,7 @@ var_type_e analyse_return(buffer_t *buffer) {
         exit(1);
     }
 
-    free(return_type_str);
+    // free(return_type_str);
     return return_type;
 }
 
@@ -200,7 +204,7 @@ ast_list_t* analyse_corps(buffer_t *buffer, ast_list_t *list_lines, sym_table_t 
     }
     buf_skipblank(buffer);
 
-    list_lines = analyse_instruction(buffer, NULL, global_sym_table, local_table);
+    list_lines = analyse_instruction(buffer, list_lines, global_sym_table, local_table);
 
     print_trace("Corps termine");
     
@@ -211,8 +215,8 @@ ast_list_t* analyse_corps(buffer_t *buffer, ast_list_t *list_lines, sym_table_t 
     }
     print_trace("Lecture du char '%c'", ch);
 
-    ast_t *comp_stmt = ast_new_comp_stmt(list_lines);
-    return ast_list_new_node(comp_stmt);
+    // ast_t *comp_stmt = ast_new_comp_stmt(list_lines);
+    return list_lines;
     
 }
 
@@ -306,7 +310,7 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
     */
     char *first_word = lexer_getalphanum_rollback(buffer);
 
-    ast_list_t *list_result;
+    // ast_list_t *list_result;
     ast_t *ast_left;
     char next_char;
 
@@ -347,7 +351,7 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
         ast_t *ast_invalid = ast_new_comp_stmt(list_corps_else);
         ast_t *ast_condition = ast_new_condition(ast_operation, ast_valid, ast_invalid);
 
-        list_result = ast_list_add(&list_instructions, ast_condition);
+        ast_list_add(&list_instructions, ast_condition);
 
     } else if (strcmp(first_word, "while") == 0) {
         // le mot est un while
@@ -358,7 +362,7 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
 
         ast_t *ast_loop = ast_new_loop(ast_operation, ast_stmts);
 
-        list_result = ast_list_add(&list_instructions, ast_loop);
+        ast_list_add(&list_instructions, ast_loop);
 
     } else if (strcmp(first_word, "return") == 0) {
         // le mot est un return
@@ -367,7 +371,7 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
         ast_t *ast_expression = parse_expression(buffer, INSTRUCTION, global_sym_table, local_table);
         ast_t *ast_return = ast_new_return(ast_expression);
 
-        list_result = ast_list_add(&list_instructions, ast_return);
+        ast_list_add(&list_instructions, ast_return);
     } else {
         // le mot n'est pas un mot-clé logique, c'est donc var ou un appel de fonction
         char *type = lexer_getalphanum_rollback(buffer);
@@ -378,8 +382,9 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
             lexer_getalphanum(buffer);
             char *var_name = lexer_getalphanum(buffer);
             print_trace("Lecture de la declaration de variable : %s %s", type, var_name);
-            ast_left = ast_new_variable(var_name, type_e);
-            
+            ast_left = ast_new_declaration(type_e, var_name);
+            print_warn("%d", ast_left->declaration.type);
+
             sym_list_add(&local_table, ast_left);
         } else {
             // Pas un type, c'est un appel de var ou de fonction
@@ -397,7 +402,7 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
 
                 ast_left = ast_new_fncall(func_name, list_args);
 
-                free(func_name);
+                // free(func_name);
                 crash_if_exist(&global_sym_table, ast_left);
             } else {
                 // C'est une variable
@@ -410,7 +415,7 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
                     print_error("Variable %s not declared", var_name);
                     exit(1);
                 }
-                free(var_name);
+                // free(var_name);
             }
 
         }
@@ -421,22 +426,25 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
         if (next_char == ';') {
             // Unaire
             print_trace("Lecture de '%c'", next_char);
-            list_result = ast_list_add(&list_instructions, ast_left);
+            ast_list_add(&list_instructions, ast_left);
+            print_warn("%d", list_instructions->node->type);
 
         } else if (next_char == '=') {
             // Assignment
             print_trace("Lecture de '%c'", next_char);
             ast_t *ast_right = parse_expression(buffer, INSTRUCTION, global_sym_table, local_table);
             ast_t *ast_assignment = ast_new_assignment(ast_left, ast_right);
-            list_result = ast_list_add(&list_instructions, ast_assignment);
+            ast_list_add(&list_instructions, ast_assignment);
             
         } else {
             print_error("Char ';' or '=' expected");
             exit(1);
         }
         
-        free(type);
+        // free(type);
     }
+
+    printList(list_instructions);
         
     buf_lock(buffer);
     next_char = buf_getchar_after_blank(buffer);
@@ -445,14 +453,14 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
 
     if (next_char == '}') {
         // Fin de la fonction, on return
-        return list_result;
+        return list_instructions;
     } else {
         // Recurisivité, analyse de la prochaine ligne
-        analyse_instruction(buffer, list_result, global_sym_table, local_table);
+        analyse_instruction(buffer, list_instructions, global_sym_table, local_table);
     }
-    
+    return list_instructions;
    
-    free(first_word);
+    // free(first_word);
 
 }
 
@@ -495,7 +503,7 @@ ast_t *analyse_condition(buffer_t *buffer, sym_table_t *global_sym_table, sym_ta
     char *op = lexer_getop(buffer);
     ast_t *ast_right = parse_expression(buffer, CONDITION, global_sym_table, local_table);
     ast_t *condition = ast_new_binary(op_str_to_enum(op), ast_left, ast_right);
-    free(op);
+    // free(op);
 
     ch = buf_getchar(buffer);
     if (ch != ')') {
@@ -724,7 +732,7 @@ ast_list_t* analyse_args(buffer_t *buffer, ast_list_t *list_args, sym_table_t *g
             }
 
             arg_node = ast_new_variable(var_name, var_type);
-            list_args = ast_list_add(&list_args, arg_node);
+            ast_list_add(&list_args, arg_node);
         }
     } else {
         //number donc crash :(
@@ -783,8 +791,8 @@ void check_valid_name(buffer_t *buffer){
         exit(1);
     }
    
-    free(word);
-    free(num);
+    // free(word);
+    // free(num);
 }
 
 //renvoie true si c'est une fonction et false si non

@@ -82,12 +82,12 @@ ast_t* ast_new_assignment(ast_t *lvalue, ast_t *rvalue) {
     return node;
 }
 
-ast_t* ast_new_declaration(ast_t *lvalue, ast_t *rvalue) {
+ast_t* ast_new_declaration(var_type_e type, char *name) {
     ast_t *node = malloc(sizeof(ast_t));
     if (node != NULL) {
         node->type = AST_DECLARATION;
-        node->declaration.lvalue = lvalue;
-        node->declaration.rvalue = rvalue;
+        node->declaration.type = type;
+        node->declaration.name = name;
     }
     return node;
 }
@@ -132,22 +132,38 @@ ast_list_t *ast_list_new_node (ast_t *elem){
     return node_list;
 }
 
-ast_list_t *ast_list_add (ast_list_t **list_head, ast_t *elem){
-    ast_list_t *new_node = ast_list_new_node(elem);
+void *ast_list_add (ast_list_t **list_head, ast_t *node){
+    // ast_list_t *new_node = ast_list_new_node(elem);
 
-    if (new_node != NULL) {
-        if (*list_head == NULL) {
-            *list_head = new_node;
-        } else {
-            ast_list_t *current = *list_head;
-            while (current->next != NULL) {
-                current = current->next;
-            }
-            current->next = new_node;
-        }
+    // if (new_node != NULL) {
+    //     if (*list_head == NULL) {
+    //         *list_head = new_node;
+    //     } else {
+    //         ast_list_t *current = *list_head;
+    //         while (current->next != NULL) {
+    //             current = current->next;
+    //         }
+    //         current->next = new_node;
+    //     }
+    // }
+    // return new_node;
+
+    ast_list_t* new_node = ast_list_new_node(node);
+    ast_list_t *last = *list_head;
+
+    // Si la liste est vide, le nouveau noeud devient le premier noeud
+    if (*list_head == NULL) {
+        *list_head = new_node;
+        return;
     }
-    return new_node;
 
+    // Sinon, on parcourt la liste jusqu'au dernier noeud
+    while (last->next != NULL) {
+        last = last->next;
+    }
+
+    // On change le dernier noeud pour qu'il pointe vers le nouveau noeud
+    last->next = new_node;
 }
 
 void printList(ast_list_t *node_list) {
@@ -163,5 +179,7 @@ void printList(ast_list_t *node_list) {
     if (node_list->next != NULL) {
         printf(" -> ");
         printList(node_list->next);
+    } else {
+        printf("\n");
     }
 }

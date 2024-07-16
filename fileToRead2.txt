@@ -1,10 +1,11 @@
-function main(int var1, int rav): void {
-    int iii = 19 + 5;
+function main(int var1, int rav, int var2): void {
     int salut;
+    int iii = 19 + 5;
     iii = 1 + main(salut);
 
     if (1 < 2) {
         int i = 3;
     }
+    main();
 }
 

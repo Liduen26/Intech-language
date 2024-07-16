@@ -46,14 +46,26 @@ void crash_if_exist(sym_table_t **list_head, ast_t *node) {
 
     while (last != NULL) {
         // printf("%s\n", current->node->function.name);
-        if (last->node->type != node->type) {
-            continue;
-        }
 
-        if (last->node->function.name == node->function.name) {
-            printf("%s already exist !", last->node->function.name);
-            exit(1);
+        switch (last->node->type)
+        {
+        case AST_FUNCTION:
+            if (last->node->function.name == node->function.name) {
+                printf("%s already exist !", last->node->function.name);
+                exit(1);
+            }
+            break;
+        case AST_DECLARATION:
+            if (last->node->declaration.name == node->var.name) {
+                printf("%s already exist !", last->node->function.name);
+                exit(1);
+            }
+            break;
+        
+        default:
+            break;
         }
+        
         last = last->next;
     }
 }
@@ -91,8 +103,8 @@ var_type_e sym_get_type(sym_table_t **list_head, ast_t *node) {
             }
             break;
 
-        case AST_VARIABLE:
-            if (strcmp(last->node->var.name, node->var.name) == 0) {
+        case AST_DECLARATION:
+            if (strcmp(last->node->declaration.name, node->var.name) == 0) {
                 return last->node->var.type;
             }
             break;

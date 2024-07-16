@@ -7,41 +7,26 @@ case declr_var:
     printf("let %s : %s", ...)
 
 */
-
+#include <stdlib.h>
 #include <stdio.h>
 #include "ast.h"
 #include "parser.h"
 #include "writer.h"
+#include "ressources/utils.h"
+
+int indent = 0;
 
 void write_ast_to_file(FILE *file, ast_list_t *ast_list) {
+    print_trace("Debut de l'ecriture");
     ast_list_t *current = ast_list;
     while (current != NULL) {
-        switch (current->node->type) {
-            case AST_FUNCTION:
-                write_function(file, current->node);
-                break;
-            case AST_DECLARATION:
-                write_declaration(file, current->node);
-                break;
-            case AST_ASSIGNMENT:
-                write_assignment(file, current->node);
-                break;
-            case AST_RETURN:
-                write_return(file, current->node);
-                break;
-            case AST_CONDITION:
-                write_if(file, current->node);
-                break;
-            case AST_LOOP:
-                write_while(file, current->node);
-                break;
-            // case AST_EXPRESSION:
-            //     write_expression(file, current->node);
-            //     break;
-            default:
-                fprintf(stderr, "Unknown AST node type\n");
-                break;
+        if (current->node->type == AST_FUNCTION) {
+            write_function(file, current->node);
+        } else {
+            print_error("First node isn't a function");
+            exit(1);
         }
+        
         current = current->next;
     }
 
@@ -49,54 +34,107 @@ void write_ast_to_file(FILE *file, ast_list_t *ast_list) {
 }
 
 void write_function(FILE *file, ast_t *node) {
-    fprintf(file, "function %s(", node->function.name);
+    printf("function %s(", node->function.name);
     ast_list_t *param = node->function.params;
     while (param != NULL) {
-        printf("%s", param->node->var.name);
-        fprintf(file, "%s: %s", param->node->var.name, type_to_str(param->node->var.type));
+        printf("%s: %s", param->node->var.name, type_to_str(param->node->var.type));
         if (param->next != NULL) {
-            fprintf(file, ", ");
+            printf(", ");
         }
         param = param->next;
     }
-    fprintf(file, "): %s {\n", type_to_str(node->function.return_type));
-    // write_statements(file, node->function.stmts);
-    fprintf(file, "}\n");
+    printf("): %s ", type_to_str(node->function.return_type));
+    // printList(node->function.stmts);
+    write_statements(file, node->function.stmts);
 }
 
-void write_declaration(FILE *file, ast_t *ast) {
-    
-}
+// void write_corps(FILE *file, ast_list_t *ast_list) {
+//     ast_list_t *current = ast_list;
+//     printf("%d", current->node->type);
+//     while (current != NULL) {
+//         if (current->node->type != AST_COMPOUND_STATEMENT) {
+//             print_error("Not a compound statement in the corps");
+//             exit(1);
+//         }
+//         // print_warn("corps warn %d", current->node->compound_stmt.stmts->node->type);
 
-void write_assignment(FILE *file, ast_t *ast) {
-
-}
-
-void write_return(FILE *file, ast_t *ast) {
-
-}
-
-void write_if(FILE *file, ast_t *ast) {
-
-}
-
-void write_while(FILE *file, ast_t *ast) {
-
-}
-
-void write_expression(FILE *file, ast_t *ast) {
-
-}
-
-// // Helper functions to convert enums to strings
-// const char* var_type_to_str(var_type_e type) {
-//     switch (type) {
-//         case INT: return "int";
-//         case VOID: return "void";
-//         default: return "ya un probleme";
+//         write_statements(file, current->node);
+        
+//         current = current->next;
 //     }
 // }
 
+// Ecris une instruction
+void write_statements(FILE *file, ast_list_t *head_stmts) {
+    // Ajoute un d'indentation à chaque fois qu'on rentre dans un statement
+    indent++;
+    printf("{\n");
+    ast_list_t *current = head_stmts;
+    while (current != NULL) {
+        if (current->node == NULL) {
+            print_error("Node null");
+        }
+
+        // Met autant d'indentation que le compteur
+        for (size_t i = 0; i < indent; i++) {
+            printf("\t");
+        }
+        // print_warn("type : %d", current->node->type); 
+
+        write_node(file, current->node);
+        printf(";\n");
+        current = current->next;
+    }
+    printf("}\n");
+    indent--;
+}
+
+// Sert à print n'importe quel node
+void write_node(FILE *file, ast_t *node) {   
+    // print_warn("type : %d", node->type); 
+    switch (node->type) {
+        case AST_DECLARATION:
+            write_variable_declaration(file, node);
+            break;
+        case AST_ASSIGNMENT:
+            write_assignment(file, node);
+            break;
+        case AST_INTEGER:
+            write_integer(file, node);
+            break;
+        case AST_BINARY:
+            write_binary(file, node);
+            break;
+        default:
+            fprintf(stderr, "Unsupported AST node type\n");
+            break;
+    }
+}
+
+void write_variable_declaration(FILE *file, ast_t *ast) {
+    printf("%s: %s", ast->declaration.name, type_to_str(ast->declaration.type));
+}
+
+void write_assignment(FILE *file, ast_t *ast) {
+    write_node(file, ast->assignment.lvalue);
+    printf(" = ");
+    write_node(file, ast->assignment.rvalue);
+}
+
+void write_integer(FILE *file, ast_t *ast) {
+    printf("%d", ast->integer);
+}
+
+void write_binary(FILE *file, ast_t *ast) {
+    write_node(file, ast->binary.left);
+    printf(" %s ", op_enum_to_str(ast->binary.op));
+    write_node(file, ast->binary.right);
+    // print_warn("type right : %d", ast->assignment.rvalue->type);
+}
+
+
+
+// Helper functions to convert enums to strings
 const char* type_to_str(var_type_e type) {
     switch (type) {
         case INT: return "number";
