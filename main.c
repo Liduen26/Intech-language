@@ -5,7 +5,7 @@
 #include "lexer.h" 
 #include "ast.h"
 #include "parser.h"
-
+#include "writer.c"
 
 int main() {
     buffer_t buffer;
@@ -24,9 +24,6 @@ int main() {
     //TEST DU PARSER
     ast_list_t* func_list = parser(&buffer);
 
-    // Écrire l'AST dans un fichier TypeScript
-    write_ast_to_ts(func_list, "test.ts");
-    
     //TEST DU LEXER
     //lexer_test(&buffer);
 
