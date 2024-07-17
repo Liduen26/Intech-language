@@ -18,6 +18,10 @@ void write_assignment(FILE *file, ast_t *ast);
 void write_integer(FILE *file, ast_t *ast);
 void write_binary(FILE *file, ast_t *ast);
 void write_variable(FILE *file, ast_t *ast);
+void write_fncall(FILE *file, ast_t *ast);
+void write_condition(FILE *file, ast_t *ast);
+
+
 
 // Fonctions auxiliaires pour convertir les enums en chaînes de caractères
 // const char* var_type_to_str(var_type_e type);

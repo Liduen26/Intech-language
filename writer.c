@@ -108,6 +108,12 @@ void write_node(FILE *file, ast_t *node) {
         case AST_VARIABLE:
             write_variable(file, node);
             break;
+        case AST_FNCALL:
+            write_fncall(file, node);
+            break;
+        case AST_CONDITION:
+            write_condition(file, node);
+            break;
         default:
             fprintf(stderr, "Unsupported AST node type\n");
             break;
@@ -136,7 +142,19 @@ void write_binary(FILE *file, ast_t *ast) {
 }
 
 void write_variable(FILE *file, ast_t *ast) {
-    printf(" %s ", ast->var.name);
+    printf("%s", ast->var.name);
+}
+
+void write_fncall(FILE *file, ast_t *ast) {
+    printf("%s(%s)" , ast->call.name, ast->call.args);
+}
+
+void write_condition(FILE *file, ast_t *ast) {
+    printf("if (");
+    write_node(file, ast->branch.condition);
+    printf(") ");
+
+    write_statements(file, ast->branch.valid->compound_stmt.stmts);
 }
 
 
