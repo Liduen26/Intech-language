@@ -2,9 +2,9 @@
 récup l'ast head que renvoie le parser (function main)
 gros switch case sur le type de l'ast (ast_node_type_e)
 Case function : 
-    printf("function %s (%... ) : %s", function.name, function.param, function.return_type)
+    fprintf(file, "function %s (%... ) : %s", function.name, function.param, function.return_type)
 case declr_var: 
-    printf("let %s : %s", ...)
+    fprintf(file, "let %s : %s", ...)
 
 */
 #include <stdlib.h>
@@ -34,23 +34,23 @@ void write_ast_to_file(FILE *file, ast_list_t *ast_list) {
 }
 
 void write_function(FILE *file, ast_t *node) {
-    printf("function %s(", node->function.name);
+    fprintf(file, "function %s(", node->function.name);
     ast_list_t *param = node->function.params;
     while (param != NULL) {
-        printf("%s: %s", param->node->var.name, type_to_str(param->node->var.type));
+        fprintf(file, "%s: %s", param->node->var.name, type_to_str(param->node->var.type));
         if (param->next != NULL) {
-            printf(", ");
+            fprintf(file, ", ");
         }
         param = param->next;
     }
-    printf("): %s ", type_to_str(node->function.return_type));
+    fprintf(file, "): %s ", type_to_str(node->function.return_type));
     // printList(node->function.stmts);
     write_statements(file, node->function.stmts);
 }
 
 // void write_corps(FILE *file, ast_list_t *ast_list) {
 //     ast_list_t *current = ast_list;
-//     printf("%d", current->node->type);
+//     fprintf(file, "%d", current->node->type);
 //     while (current != NULL) {
 //         if (current->node->type != AST_COMPOUND_STATEMENT) {
 //             print_error("Not a compound statement in the corps");
@@ -68,7 +68,7 @@ void write_function(FILE *file, ast_t *node) {
 void write_statements(FILE *file, ast_list_t *head_stmts) {
     // Ajoute un d'indentation à chaque fois qu'on rentre dans un statement
     indent++;
-    printf("{\n");
+    fprintf(file, "{\n");
     ast_list_t *current = head_stmts;
     while (current != NULL) {
         if (current->node == NULL) {
@@ -77,21 +77,28 @@ void write_statements(FILE *file, ast_list_t *head_stmts) {
 
         // Met autant d'indentation que le compteur
         for (size_t i = 0; i < indent; i++) {
-            printf("\t");
+            fprintf(file, "\t");
         }
         // print_warn("type : %d", current->node->type); 
 
-        write_node(file, current->node);
-        printf(";\n");
+        bool semi_colon = write_node(file, current->node);
+        if (semi_colon) {
+            fprintf(file, ";\n");
+        }
+        
         current = current->next;
     }
-    printf("}\n");
     indent--;
+    for (size_t i = 0; i < indent; i++) {
+        fprintf(file, "\t");
+    }
+    fprintf(file, "}\n");
 }
 
 // Sert à print n'importe quel node
-void write_node(FILE *file, ast_t *node) {   
+bool write_node(FILE *file, ast_t *node) {   
     // print_warn("type : %d", node->type); 
+    bool semi_colon = true;
     switch (node->type) {
         case AST_DECLARATION:
             write_variable_declaration(file, node);
@@ -113,54 +120,71 @@ void write_node(FILE *file, ast_t *node) {
             break;
         case AST_CONDITION:
             write_condition(file, node);
+            semi_colon = false;
             break;
         default:
-            fprintf(stderr, "Unsupported AST node type\n");
+            print_error("Unsupported AST node type");
             break;
     }
+    return semi_colon;
 }
 
 void write_variable_declaration(FILE *file, ast_t *ast) {
-    printf("%s: %s", ast->declaration.name, type_to_str(ast->declaration.type));
+    fprintf(file, "let %s: %s", ast->declaration.name, type_to_str(ast->declaration.type));
 }
 
 void write_assignment(FILE *file, ast_t *ast) {
     write_node(file, ast->assignment.lvalue);
-    printf(" = ");
+    fprintf(file, " = ");
     write_node(file, ast->assignment.rvalue);
 }
 
 void write_integer(FILE *file, ast_t *ast) {
-    printf("%d", ast->integer);
+    fprintf(file, "%d", ast->integer);
 }
 
 void write_binary(FILE *file, ast_t *ast) {
     write_node(file, ast->binary.left);
-    printf(" %s ", op_enum_to_str(ast->binary.op));
+    fprintf(file, " %s ", op_enum_to_str(ast->binary.op));
     write_node(file, ast->binary.right);
     // print_warn("type right : %d", ast->assignment.rvalue->type);
 }
 
 void write_variable(FILE *file, ast_t *ast) {
-    printf("%s", ast->var.name);
+    fprintf(file, "%s", ast->var.name);
 }
 
 void write_fncall(FILE *file, ast_t *ast) {
-    printf("%s(%s)" , ast->call.name, ast->call.args);
+    fprintf(file, "%s(" , ast->call.name);
+    ast_list_t *last = ast->call.args;
+    while (last != NULL) {
+        if (last->node->type != AST_VARIABLE) {
+            exit(1);
+        }
+
+        fprintf(file, "%s", last->node->var.name);
+        
+        if (last->next != NULL) {
+            fprintf(file, ", ");
+        }
+        
+        last = last->next;
+    }
+    fprintf(file, ")");
 }
 
 void write_condition(FILE *file, ast_t *ast) {
-    printf("if (");
+    fprintf(file, "if (");
     write_node(file, ast->branch.condition);
-    printf(") ");
+    fprintf(file, ") ");
 
     write_statements(file, ast->branch.valid->compound_stmt.stmts);
 
     // if (ast->branch.invalid != NULL) {
     //     for (size_t i = 0; i > indent; i++) {
-    //         printf("\t");
+    //         fprintf(file, "\t");
     //     }
-    //     printf("else ");
+    //     fprintf(file, "else ");
     //     write_statements(file, ast->branch.invalid->compound_stmt.stmts);
     // }
 }

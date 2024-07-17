@@ -383,7 +383,6 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
             char *var_name = lexer_getalphanum(buffer);
             print_trace("Lecture de la declaration de variable : %s %s", type, var_name);
             ast_left = ast_new_declaration(type_e, var_name);
-            print_warn("%d", ast_left->declaration.type);
 
             sym_list_add(&local_table, ast_left);
         } else {
@@ -427,7 +426,6 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
             // Unaire
             print_trace("Lecture de '%c'", next_char);
             ast_list_add(&list_instructions, ast_left);
-            print_warn("%d", list_instructions->node->type);
 
         } else if (next_char == '=') {
             // Assignment
