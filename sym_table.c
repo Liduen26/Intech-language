@@ -95,7 +95,7 @@ var_type_e sym_get_type(sym_table_t **list_head, ast_t *node) {
     }
 
     while (last != NULL) {
-        switch (last->node->type)
+        switch (node->type)
         {
         case AST_FUNCTION:
             if (strcmp(last->node->function.name, node->function.name) == 0) {
@@ -103,7 +103,7 @@ var_type_e sym_get_type(sym_table_t **list_head, ast_t *node) {
             }
             break;
 
-        case AST_DECLARATION:
+        case AST_VARIABLE:
             if (strcmp(last->node->declaration.name, node->var.name) == 0) {
                 return last->node->var.type;
             }

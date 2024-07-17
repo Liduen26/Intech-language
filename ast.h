@@ -4,17 +4,17 @@
 #include "ressources/buffer.h"
 
 typedef enum {
-    AST_VOID,
+    AST_VOID, // 0
     AST_INTEGER,
     AST_BINARY,
     AST_UNARY,
     AST_FUNCTION,
-    AST_FNCALL,
+    AST_FNCALL, // 5
     AST_VARIABLE,
     AST_CONDITION,
     AST_LOOP,
     AST_DECLARATION,
-    AST_ASSIGNMENT,
+    AST_ASSIGNMENT, // 10
     AST_COMPOUND_STATEMENT,
     AST_RETURN
 } ast_node_type_e;
