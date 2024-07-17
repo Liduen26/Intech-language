@@ -24,9 +24,7 @@ ast_list_t* parser(buffer_t *buffer) {
             print_trace("Fin d'une fonction");
 
             ast_list_add(&func_list, function);
-            print_warn("fonction ajoutee ");
-            printList(function->function.stmts);
-            printList(func_list->node->function.stmts);
+
         } else {
             print_trace("Ce n'est pas une fonction");
             // free(first_word);
@@ -58,12 +56,10 @@ ast_t* analyse_function(sym_table_t **global_sym_table, buffer_t *buffer) {
 
     ast_list_t *list_param = NULL;
     list_param = analyse_param(buffer, list_param, &local_table);
-    print_table(local_table);
-    print_warn("return");
     var_type_e return_type = analyse_return(buffer);
     ast_list_t *list_instructions = NULL;
     list_instructions = analyse_corps(buffer, list_instructions, *global_sym_table, local_table);
-    printList(list_instructions);
+
 
     ast_t *func_node = ast_new_function(func_name, return_type, list_param, list_instructions);
 
@@ -138,7 +134,6 @@ ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param, sym_table_t 
         exit(1);
     }
 
-    print_table(*local_table);
     // free(type);
     // free(param_name);
     return list_param;
@@ -353,7 +348,7 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
                 }
             }
         }
-        
+
         ast_t *ast_valid = ast_new_comp_stmt(list_corps_if);
         ast_t *ast_invalid = ast_new_comp_stmt(list_corps_else);
         ast_t *ast_condition = ast_new_condition(ast_operation, ast_valid, ast_invalid);
@@ -421,7 +416,7 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
                     print_error("Variable %s not declared", var_name);
                     exit(1);
                 }
-                print_warn("ici");
+
                 // free(var_name);
             }
 
@@ -450,7 +445,7 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
         // free(type);
     }
 
-    printList(list_instructions);
+
         
     buf_lock(buffer);
     next_char = buf_getchar_after_blank(buffer);
@@ -663,7 +658,7 @@ ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global
         node = ast_new_binary(op_str_to_enum(operator), node, ast_right);
     }
 
-    print_warn("fin parse");
+
     buf_unlock(buffer);
     return node;
 }
