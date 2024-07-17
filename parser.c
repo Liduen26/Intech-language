@@ -353,7 +353,6 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
                 }
             }
         }
-        print_warn("fin else");
         
         ast_t *ast_valid = ast_new_comp_stmt(list_corps_if);
         ast_t *ast_invalid = ast_new_comp_stmt(list_corps_else);

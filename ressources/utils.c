@@ -9,7 +9,7 @@
 #include <execinfo.h>
 #endif
 
-const bool TRACE = true;
+const bool TRACE = false;
 
 
 char *copy_name (char *name)
