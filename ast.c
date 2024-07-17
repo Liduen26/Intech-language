@@ -132,7 +132,7 @@ ast_list_t *ast_list_new_node (ast_t *elem){
     return node_list;
 }
 
-void *ast_list_add (ast_list_t **list_head, ast_t *node){
+void ast_list_add (ast_list_t **list_head, ast_t *node){
     // ast_list_t *new_node = ast_list_new_node(elem);
 
     // if (new_node != NULL) {
@@ -151,11 +151,12 @@ void *ast_list_add (ast_list_t **list_head, ast_t *node){
     ast_list_t* new_node = ast_list_new_node(node);
     ast_list_t *last = *list_head;
 
+
     // Si la liste est vide, le nouveau noeud devient le premier noeud
     if (*list_head == NULL) {
         *list_head = new_node;
-        return list_head;
-    }
+        return;
+    } 
 
     // Sinon, on parcourt la liste jusqu'au dernier noeud
     while (last->next != NULL) {

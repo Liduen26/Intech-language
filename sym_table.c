@@ -40,9 +40,9 @@ void sym_list_add (sym_table_t **list_head, ast_t *node) {
 void crash_if_exist(sym_table_t **list_head, ast_t *node) {
     sym_table_t *last = *list_head;
     if (node == NULL) {
+        print_error("Function or variable already exist");
         exit(1);
     }
-
 
     while (last != NULL) {
         // printf("%s\n", current->node->function.name);
@@ -74,6 +74,7 @@ void print_table(sym_table_t *node_list) {
 
     if (node_list == NULL)
     {
+        print_error("sym table null");
         exit(1);
     }
     

@@ -31,13 +31,17 @@ void write_ast_to_file(FILE *file, ast_list_t *ast_list) {
     }
 
     fclose(file);
+    print_trace("Fin de l'ecriture");
 }
 
 void write_function(FILE *file, ast_t *node) {
     fprintf(file, "function %s(", node->function.name);
+    print_trace("ecris fonction %s", node->function.name);
+
     ast_list_t *param = node->function.params;
     while (param != NULL) {
-        fprintf(file, "%s: %s", param->node->var.name, type_to_str(param->node->var.type));
+        fprintf(file, "%s: %s", param->node->declaration.name, type_to_str(param->node->declaration.type));
+        print_trace("ecris param %s", param->node->declaration.name);
         if (param->next != NULL) {
             fprintf(file, ", ");
         }
@@ -122,6 +126,9 @@ bool write_node(FILE *file, ast_t *node) {
             write_condition(file, node);
             semi_colon = false;
             break;
+        case AST_RETURN: 
+            write_return(file, node);
+            break;
         default:
             print_error("Unsupported AST node type");
             break;
@@ -187,6 +194,12 @@ void write_condition(FILE *file, ast_t *ast) {
         fprintf(file, "else ");
         write_statements(file, ast->branch.invalid->compound_stmt.stmts);
     }
+}
+
+
+void write_return(FILE *file, ast_t *ast) {
+    fprintf(file, "return ");
+    write_node(file, ast->ret.expr);
 }
 
 

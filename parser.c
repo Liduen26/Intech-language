@@ -20,7 +20,7 @@ ast_list_t* parser(buffer_t *buffer) {
         print_trace("Lecture mot cle : '%s'", first_word);
         if (first_word != NULL && strcmp(first_word, "function") == 0) {
 
-            ast_t *function = analyse_function(global_sym_table, buffer);   
+            ast_t *function = analyse_function(&global_sym_table, buffer);   
             print_trace("Fin d'une fonction");
 
             ast_list_add(&func_list, function);
@@ -41,7 +41,7 @@ ast_list_t* parser(buffer_t *buffer) {
 }
 
 //analyse la fonction dans son ensemble (chef d'orchestre)
-ast_t* analyse_function(sym_table_t *global_sym_table, buffer_t *buffer) {
+ast_t* analyse_function(sym_table_t **global_sym_table, buffer_t *buffer) {
     /**
     analyse du lexème qui sera le nom de la fonction
     appel de analyse_args()
@@ -57,22 +57,24 @@ ast_t* analyse_function(sym_table_t *global_sym_table, buffer_t *buffer) {
     sym_table_t *local_table = NULL;
 
     ast_list_t *list_param = NULL;
-    list_param = analyse_param(buffer, list_param, local_table);
+    list_param = analyse_param(buffer, list_param, &local_table);
+    print_table(local_table);
+    print_warn("return");
     var_type_e return_type = analyse_return(buffer);
     ast_list_t *list_instructions = NULL;
-    list_instructions = analyse_corps(buffer, list_instructions, global_sym_table, local_table);
+    list_instructions = analyse_corps(buffer, list_instructions, *global_sym_table, local_table);
     printList(list_instructions);
 
     ast_t *func_node = ast_new_function(func_name, return_type, list_param, list_instructions);
 
     // ajout du symbole correspondant au nom de la fonction dans la table des symboles
-    sym_list_add(&global_sym_table, func_node);
+    sym_list_add(global_sym_table, func_node);
     // retourner l’AST pour la fonction “main”
     return func_node;
 }
 
 //analyse les paramètres d'un fonction, si ',', recursive, si ')' fin
-ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param, sym_table_t *local_table) {
+ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param, sym_table_t **local_table) {
     /**
     Skip blank
     cherche Var (type + nom)
@@ -117,13 +119,13 @@ ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param, sym_table_t 
         print_error("Incorrect var name in parameter");
         exit(1);
     }
-    ast_t *ast_var = ast_new_variable(param_name, type_e);
+    ast_t *ast_param = ast_new_declaration(type_e, param_name);
     
     // Ajoute a la table des symboles et crash si elle est déjà dedans
-    sym_list_add(&local_table, ast_var);
-    
-    ast_list_add(&list_param, ast_var);
-    print_trace("Lecture du parametre : %s", list_param->node->var.name);
+    sym_list_add(local_table, ast_param);
+
+    ast_list_add(&list_param, ast_param);
+    print_trace("Lecture du parametre : %s", ast_param->declaration.name);
 
     // Regarde le prochain char pour savoir si c'est une "," ou pas
     char next_char = buf_getchar_after_blank(buffer);
@@ -136,6 +138,7 @@ ast_list_t* analyse_param(buffer_t *buffer, ast_list_t *list_param, sym_table_t 
         exit(1);
     }
 
+    print_table(*local_table);
     // free(type);
     // free(param_name);
     return list_param;
@@ -419,6 +422,7 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
                     print_error("Variable %s not declared", var_name);
                     exit(1);
                 }
+                print_warn("ici");
                 // free(var_name);
             }
 
@@ -701,11 +705,10 @@ ast_list_t* analyse_args(buffer_t *buffer, ast_list_t *list_args, sym_table_t *g
     char ch = buf_getchar_after_blank(buffer);
 
     if(ch != '('){
-        //si pas de '(', rollback 1 et return null
+        //si pas de '(', rollback 1
         buf_rollback(buffer, 1);
-
-        return NULL;
     }
+
     buf_unlock(buffer);
 
     buf_skipblank(buffer);
@@ -744,8 +747,8 @@ ast_list_t* analyse_args(buffer_t *buffer, ast_list_t *list_args, sym_table_t *g
     }
 
     ch = buf_getchar_after_blank(buffer);
-    if (ch == ',')
-    {
+    
+    if (ch == ',') {
         analyse_args(buffer, list_args, global_sym_table, local_table);
     } else if (ch == ')'){
         return list_args;

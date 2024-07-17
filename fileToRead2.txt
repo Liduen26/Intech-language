@@ -1,14 +1,15 @@
 function main(int var1, int rav, int var2): void {
-    int salut;
+    int salut = 2;
     int iii = 19 + 5;
-    iii = iii + iii;
+    iii = 1 + add(salut, iii);
 
     if (1 < 2) {
         int i = 3;
     } else {
         int i = 2;
     }
-    main();
 }
 
-
+function add(int one, int two): int {
+    return one + two;
+}

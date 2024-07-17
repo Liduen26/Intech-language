@@ -20,7 +20,7 @@ void write_binary(FILE *file, ast_t *ast);
 void write_variable(FILE *file, ast_t *ast);
 void write_fncall(FILE *file, ast_t *ast);
 void write_condition(FILE *file, ast_t *ast);
-
+void write_return(FILE *file, ast_t *ast);
 
 
 // Fonctions auxiliaires pour convertir les enums en chaînes de caractères
