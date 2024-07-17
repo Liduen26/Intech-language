@@ -1,7 +1,7 @@
 function main(int var1, int rav, int var2): void {
     int salut;
     int iii = 19 + 5;
-    iii = 1 + main(salut);
+    iii = iii + iii;
 
     if (1 < 2) {
         int i = 3;
@@ -10,4 +10,5 @@ function main(int var1, int rav, int var2): void {
     }
     main();
 }
+
 
