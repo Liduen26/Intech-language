@@ -1,12 +1,3 @@
-/*
-récup l'ast head que renvoie le parser (function main)
-gros switch case sur le type de l'ast (ast_node_type_e)
-Case function : 
-    fprintf(file, "function %s (%... ) : %s", function.name, function.param, function.return_type)
-case declr_var: 
-    fprintf(file, "let %s : %s", ...)
-
-*/
 #include <stdlib.h>
 #include <stdio.h>
 #include "ast.h"
@@ -52,27 +43,14 @@ void write_function(FILE *file, ast_t *node) {
     write_statements(file, node->function.stmts);
 }
 
-// void write_corps(FILE *file, ast_list_t *ast_list) {
-//     ast_list_t *current = ast_list;
-//     fprintf(file, "%d", current->node->type);
-//     while (current != NULL) {
-//         if (current->node->type != AST_COMPOUND_STATEMENT) {
-//             print_error("Not a compound statement in the corps");
-//             exit(1);
-//         }
-//         // print_warn("corps warn %d", current->node->compound_stmt.stmts->node->type);
-
-//         write_statements(file, current->node);
-        
-//         current = current->next;
-//     }
-// }
-
-// Ecris une instruction
 void write_statements(FILE *file, ast_list_t *head_stmts) {
     // Ajoute un d'indentation à chaque fois qu'on rentre dans un statement
-    indent++;
+    fprintf(file, "\n");
+    for (size_t i = 0; i < indent; i++) {
+        fprintf(file, "\t");
+    }
     fprintf(file, "{\n");
+    indent++;
     ast_list_t *current = head_stmts;
     while (current != NULL) {
         if (current->node == NULL) {
@@ -96,6 +74,7 @@ void write_statements(FILE *file, ast_list_t *head_stmts) {
     for (size_t i = 0; i < indent; i++) {
         fprintf(file, "\t");
     }
+
     fprintf(file, "}\n");
 }
 
@@ -188,7 +167,7 @@ void write_condition(FILE *file, ast_t *ast) {
     write_statements(file, ast->branch.valid->compound_stmt.stmts);
 
     if (ast->branch.invalid != NULL) {
-        for (size_t i = 0; i > indent; i++) {
+        for (size_t i = 0; i < indent; i++) {
             fprintf(file, "\t");
         }
         fprintf(file, "else ");
