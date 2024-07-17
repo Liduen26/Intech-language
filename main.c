@@ -10,7 +10,7 @@
 int main() {
     buffer_t buffer;
 
-    FILE *file = fopen("fileToRead2.txt", "r");
+    FILE *file = fopen("fileToRead.txt", "r");
 
     // Vérifie que le fichier a été ouvert correctement
     if (file == NULL) {
@@ -25,7 +25,7 @@ int main() {
     ast_list_t* func_list = parser(&buffer);
 
     //Ecriture ds le fichier
-    FILE *output = fopen("test.ts", "w");
+    FILE *output = fopen("output.ts", "w");
     if (output == NULL) {
         perror("Erreur opening output file");
         return 1;
