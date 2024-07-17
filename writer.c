@@ -105,6 +105,9 @@ void write_node(FILE *file, ast_t *node) {
         case AST_BINARY:
             write_binary(file, node);
             break;
+        case AST_VARIABLE:
+            write_variable(file, node);
+            break;
         default:
             fprintf(stderr, "Unsupported AST node type\n");
             break;
@@ -132,6 +135,9 @@ void write_binary(FILE *file, ast_t *ast) {
     // print_warn("type right : %d", ast->assignment.rvalue->type);
 }
 
+void write_variable(FILE *file, ast_t *ast) {
+    printf(" %s ", ast->var.name);
+}
 
 
 // Helper functions to convert enums to strings

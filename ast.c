@@ -154,7 +154,7 @@ void *ast_list_add (ast_list_t **list_head, ast_t *node){
     // Si la liste est vide, le nouveau noeud devient le premier noeud
     if (*list_head == NULL) {
         *list_head = new_node;
-        return;
+        return list_head;
     }
 
     // Sinon, on parcourt la liste jusqu'au dernier noeud
