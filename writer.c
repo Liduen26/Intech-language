@@ -155,6 +155,14 @@ void write_condition(FILE *file, ast_t *ast) {
     printf(") ");
 
     write_statements(file, ast->branch.valid->compound_stmt.stmts);
+
+    // if (ast->branch.invalid != NULL) {
+    //     for (size_t i = 0; i > indent; i++) {
+    //         printf("\t");
+    //     }
+    //     printf("else ");
+    //     write_statements(file, ast->branch.invalid->compound_stmt.stmts);
+    // }
 }
 
 
