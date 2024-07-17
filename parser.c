@@ -305,7 +305,6 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
         analyse_instruction (recursivité)
         break;
     }
-
     return
     */
     char *first_word = lexer_getalphanum_rollback(buffer);
@@ -329,17 +328,28 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
             print_trace("Lecture du mot cle logique : %s", ch);
 
             next_word = lexer_getalphanum_rollback(buffer);
-            if (strcmp(next_word, "if") == 0) {
+            print_warn("cas else (on sais pas si else if ou else normal)");
+            printf("%s", next_word);
+
+
+            if (next_word != NULL && strcmp(next_word, "if") == 0) {
                 // else if
+                print_warn("cas else if");
                 print_trace("Lecture du mot cle logique : %s", next_word);
 
                 analyse_instruction(buffer, NULL, global_sym_table, local_table);
             } else {
                 // else
+                print_warn("cas else");
+                buf_lock(buffer);
                 char next_char = buf_getchar_after_blank(buffer);
+                buf_rollback(buffer, 1);
+
                 if (next_char == '{') {
+                    buf_unlock(buffer);
                     list_corps_else = analyse_corps(buffer, NULL, global_sym_table, local_table);
                 } else {
+                    buf_unlock(buffer);
                     print_error("'{' expected after a 'else'");
                     exit(1);
                 }

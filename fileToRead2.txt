@@ -5,6 +5,8 @@ function main(int var1, int rav, int var2): void {
 
     if (1 < 2) {
         int i = 3;
+    } else {
+        int i = 2;
     }
     main();
 }
