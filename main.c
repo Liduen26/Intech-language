@@ -32,7 +32,7 @@ int main() {
     }
     write_ast_to_file(output, func_list);
     fclose(output);
-    printf("AST written to test.ts\n");
+    printf("\nAST written to output.ts\n");
 
     //TEST DU LEXER
     //lexer_test(&buffer);

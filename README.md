@@ -51,3 +51,5 @@
     Malgrès cela, c'était un projet très intéressant et challengeant :)
 
     Comme on a commencé par écrire tout notre parser en Pseudo-code pour faciliter la réflexion, on a laissé le pseudo-code visible dans les fonctions. 
+
+    On a malheuresement pas eu le temps de faire la partie gestion de la mémoire, dsl pour les leaks :(

@@ -26,7 +26,7 @@ ast_list_t* parser(buffer_t *buffer) {
             ast_list_add(&func_list, function);
 
         } else {
-            print_trace("Ce n'est pas une fonction");
+            print_error("Ce n'est pas une fonction");
             // free(first_word);
             exit(1);
         }
@@ -337,12 +337,11 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
                 buf_lock(buffer);
                 char next_char = buf_getchar_after_blank(buffer);
                 buf_rollback(buffer, 1);
+                buf_unlock(buffer);
 
                 if (next_char == '{') {
                     list_corps_else = analyse_corps(buffer, NULL, global_sym_table, local_table);
-                    buf_unlock(buffer);
                 } else {
-                    buf_unlock(buffer);
                     print_error("'{' expected after a 'else'");
                     exit(1);
                 }
@@ -446,7 +445,6 @@ ast_list_t* analyse_instruction(buffer_t *buffer, ast_list_t *list_instructions,
     }
 
 
-        
     buf_lock(buffer);
     next_char = buf_getchar_after_blank(buffer);
     buf_rollback(buffer, 1);
@@ -658,7 +656,6 @@ ast_t *parse_expression(buffer_t *buffer, context_e context, sym_table_t *global
         node = ast_new_binary(op_str_to_enum(operator), node, ast_right);
     }
 
-
     buf_unlock(buffer);
     return node;
 }
@@ -816,6 +813,7 @@ bool is_function(buffer_t *buffer) {
     //recup le nom de la fonction
     char *name = lexer_getalphanum(buffer);
     if (name == NULL){
+        buf_unlock(buffer);
         return false;
     }
 
